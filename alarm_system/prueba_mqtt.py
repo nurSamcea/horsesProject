@@ -3,7 +3,7 @@ import json
 
 # Configuración
 broker = "srv-iot.diatel.upm.es"
-port = 1883
+port = 8883
 topic = "v1/devices/me/telemetry"
 access_token = "7jpi6hyp0jzolihttq45"
 
@@ -15,7 +15,7 @@ client.username_pw_set(access_token)
 client.connect(broker, port, 60)
 
 # Publicar mensaje
-data = {"temperature": 25}
+data = {"temperature": 15}
 client.publish(topic, json.dumps(data))
 print("Mensaje enviado:", data)
 
