@@ -110,7 +110,6 @@ def button_pressed():
         logging.info("Botón presionado: Restableciendo pantalla y sonido.")
         buzzer.off()
         display_number('0')
-        set_rgb_color("verde")
     else:
         logging.info("Pulsación prolongada detectada: Llamar al veterinario.")
         display_message()
@@ -138,9 +137,9 @@ def monitor_health():
             f"Temperatura normal: {temperature:.1f}°C, Oxígeno normal: {oxygen:.1f}%, Latido normal: {heartbeat:.1f} BPM")
         color = "verde"
 
-    set_rgb_color(*colors[color])
     number = set_number(color)
     display_number(f"{number}")
+    set_rgb_color(*colors[color])
     if number == 0:
         buzzer.off()
     else:
