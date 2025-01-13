@@ -15,6 +15,20 @@ logging.basicConfig(
     ]
 )
 
+devices = [
+    {"name": "WorkerSystem", "type": "pub", "access_token": "7jpi6hyp0jzolihttq45", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse real 10", "type": "sub", "access_token": "qTMksu1CPRUh6R9x9ZR4", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 9", "type": "sub", "access_token": "iojQPjgsew6y4jtqY3Ga", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 8", "type": "sub", "access_token": "vFfeXW0de0PRP55EYs4K", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 7", "type": "sub", "access_token": "MMsjKrkXE6kobPkKZPBw", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 6", "type": "sub", "access_token": "7sxgDJLJFgzAoUy1Kf2J", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 5", "type": "sub", "access_token": "pycT7ND0ti9gnsjrw2EF", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 4", "type": "sub", "access_token": "IA4epCi4UbHRFeXhfdkH", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 3", "type": "sub", "access_token": "kyJu9vkTNHx4jNyj0uXi", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 2", "type": "sub", "access_token": "kgEdFbn9zmsDxdAmCviJ", "topic": "v1/devices/me/telemetry"},
+    {"name": "horse sim 1", "type": "sub", "access_token": "cqmjhvibzj1QXUtfVRaP", "topic": "v1/devices/me/telemetry"},
+]
+
 # Configuración de MQTT
 broker = "srv-iot.diatel.upm.es"
 port = 8883
