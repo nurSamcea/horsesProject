@@ -104,7 +104,7 @@ def handle_button_press():
         sleep(0.1)
     press_duration = time() - start_time
 
-    if press_duration < 2:
+    if press_duration < 1:
         # Restablecer a 0
         logging.info("Botón presionado brevemente: Restableciendo a estado inicial.")
         display_number('0')
@@ -112,7 +112,9 @@ def handle_button_press():
         buzzer.off()
     else:
         # Llamar al veterinario
-        logging.info("Pulsación prolongada detectada: Llamar al veterinario.")
+        alert_message = {"alert": True}
+        client.publish(topic_to_publish, json.dumps(alert_message), qos=1)
+        logging.info("Mensaje publicado: Llamar al veterinario.")
 
 
 # Configuración de MQTT
