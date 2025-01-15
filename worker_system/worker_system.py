@@ -95,7 +95,8 @@ def process_message(message):
 # Configuración de MQTT
 broker = "srv-iot.diatel.upm.es"
 port = 8883
-topic = "v1/devices/me/attributes"
+topic_to_subscribe = "v1/devices/me/attributes"
+topic_to_publish = "v1/devices/me/telemetry"
 access_token = "7jpi6hyp0jzolihttq45"
 
 client = mqtt.Client()
@@ -105,7 +106,7 @@ client.tls_set()
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logging.info("Conexión al broker MQTT exitosa.")
-        client.subscribe(topic, qos=1)
+        client.subscribe(topic_to_subscribe, qos=1)
     else:
         logging.error(f"Error al conectar con el broker, código: {rc}")
 
