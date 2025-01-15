@@ -1,43 +1,11 @@
 [
     {
-        "id": "a8d54a5ec3c735f0",
+        "id": "bf00516c9989c067",
         "type": "tab",
         "label": "Flujo 1",
         "disabled": false,
         "info": "",
         "env": []
-    },
-    {
-        "id": "9273722c992b7557",
-        "type": "mqtt-broker",
-        "name": "horse1",
-        "broker": "srv-iot.diatel.upm.es/",
-        "port": "8884",
-        "tls": "51fcb25f871ce970",
-        "clientid": "",
-        "autoConnect": true,
-        "usetls": true,
-        "protocolVersion": "4",
-        "keepalive": "60",
-        "cleansession": true,
-        "autoUnsubscribe": true,
-        "birthTopic": "",
-        "birthQos": "0",
-        "birthRetain": "false",
-        "birthPayload": "",
-        "birthMsg": {},
-        "closeTopic": "",
-        "closeQos": "0",
-        "closeRetain": "false",
-        "closePayload": "",
-        "closeMsg": {},
-        "willTopic": "",
-        "willQos": "0",
-        "willRetain": "false",
-        "willPayload": "",
-        "willMsg": {},
-        "userProps": "",
-        "sessionExpiry": ""
     },
     {
         "id": "51fcb25f871ce970",
@@ -310,9 +278,41 @@
         "sessionExpiry": ""
     },
     {
-        "id": "edd03d2bb86bb8b4",
+        "id": "9273722c992b7557",
+        "type": "mqtt-broker",
+        "name": "horse1",
+        "broker": "srv-iot.diatel.upm.es/",
+        "port": "8884",
+        "tls": "51fcb25f871ce970",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": true,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "3e8f3b3a037ebdbe",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse1",
         "topic": "v1/devices/me/telemetry",
         "qos": "0",
@@ -328,9 +328,9 @@
         "wires": []
     },
     {
-        "id": "d2707bb3f57d3e61",
+        "id": "93983b104928c070",
         "type": "function",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "simulated horse params",
         "func": "let r_temp = [37.5, 38.5] // float\nlet r_hr = [36, 40] // int\nlet r_ox = [95, 100] // int\nlet r_x = [-1, 1] // float\nlet r_y = [-1, 1] // float\nlet r_z = [10, 9.6] // float\nlet r_lat = [40.4, 40.41] // float\nlet r_long = [-3.69, -3.68] // float\n\nglobal.set(\"TEMP\", r_temp)\nglobal.set(\"HR\", r_hr)\nglobal.set(\"OX\", r_ox)\nglobal.set(\"X\", r_x)\nglobal.set(\"Y\", r_y)\nglobal.set(\"Z\", r_z)\nglobal.set(\"LAT\", r_lat)\nglobal.set(\"LONG\", r_long);\n\nlet messages = [];\n\nfor (let i = 0; i < 10; i++) {\n    let temperature = parseFloat((Math.random() * (r_temp[1] - r_temp[0]) + r_temp[0]).toFixed(2));\n    let hr = Math.floor(Math.random() * (r_hr[1] - r_hr[0] + 1)) + r_hr[0];\n    let oximetry = Math.floor(Math.random() * (r_ox[1] - r_ox[1] + 1)) + r_ox[0];\n    let x = parseFloat((Math.random() * (r_x[1] - r_x[0]) + r_x[0]).toFixed(2));\n    let y = parseFloat((Math.random() * (r_y[1] - r_y[0]) + r_y[0]).toFixed(2));\n    let z = parseFloat((Math.random() * (r_z[1] - r_z[0]) + r_z[0]).toFixed(2));\n    let lat = parseFloat((Math.random() * (r_lat[1] - r_lat[0]) + r_lat[0]).toFixed(6));\n    let long = parseFloat((Math.random() * (r_long[1] - r_long[0]) + r_long[0]).toFixed(6));\n\n    messages.push({ \n        payload: {\n            \"temperature\": temperature,\n            \"HR\": hr,\n            \"oximetry\": oximetry,\n            \"x\": x,\n            \"y\": y,\n            \"z\": z,\n            \"lat\": lat,\n            \"long\": long\n        } \n    });\n}\n\nreturn messages;\n",
         "outputs": 9,
@@ -343,38 +343,38 @@
         "y": 260,
         "wires": [
             [
-                "171e9db1e4b40c36"
+                "f9988d433458bef5"
             ],
             [
-                "8d2a50a5f5f305e2"
+                "467bbe0dcd307bd3"
             ],
             [
-                "edd03d2bb86bb8b4"
+                "3e8f3b3a037ebdbe"
             ],
             [
-                "1e3eee23adbe0375"
+                "9e16d2d905703561"
             ],
             [
-                "db81bd5711a3e2dd"
+                "f0596aeb8ec8fbda"
             ],
             [
-                "48969fc3e5f75efb"
+                "68b1881b781ac836"
             ],
             [
-                "53aceea77e8ac803"
+                "9fb848e9c55fb729"
             ],
             [
-                "22e3181b3d025b42"
+                "ab035defd32b1304"
             ],
             [
-                "64b909877c08c727"
+                "9184c9c6c8765002"
             ]
         ]
     },
     {
-        "id": "4693ae66852010f4",
+        "id": "3bd135fad9059620",
         "type": "inject",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "each minute",
         "props": [
             {
@@ -396,14 +396,14 @@
         "y": 260,
         "wires": [
             [
-                "d2707bb3f57d3e61"
+                "93983b104928c070"
             ]
         ]
     },
     {
-        "id": "171e9db1e4b40c36",
+        "id": "f9988d433458bef5",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse2",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -419,9 +419,9 @@
         "wires": []
     },
     {
-        "id": "8d2a50a5f5f305e2",
+        "id": "467bbe0dcd307bd3",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse3",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -437,9 +437,9 @@
         "wires": []
     },
     {
-        "id": "1e3eee23adbe0375",
+        "id": "9e16d2d905703561",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse4",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -455,9 +455,9 @@
         "wires": []
     },
     {
-        "id": "db81bd5711a3e2dd",
+        "id": "f0596aeb8ec8fbda",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse5",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -473,9 +473,9 @@
         "wires": []
     },
     {
-        "id": "48969fc3e5f75efb",
+        "id": "68b1881b781ac836",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse6",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -491,9 +491,9 @@
         "wires": []
     },
     {
-        "id": "53aceea77e8ac803",
+        "id": "9fb848e9c55fb729",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse7",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -509,9 +509,9 @@
         "wires": []
     },
     {
-        "id": "22e3181b3d025b42",
+        "id": "ab035defd32b1304",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse8",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -527,9 +527,9 @@
         "wires": []
     },
     {
-        "id": "64b909877c08c727",
+        "id": "9184c9c6c8765002",
         "type": "mqtt out",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "horse9",
         "topic": "v1/devices/me/telemetry",
         "qos": "",
@@ -545,9 +545,9 @@
         "wires": []
     },
     {
-        "id": "886299abfb9bac21",
+        "id": "15506f796ba4c8ba",
         "type": "inject",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "inyect",
         "props": [
             {
@@ -569,14 +569,14 @@
         "y": 440,
         "wires": [
             [
-                "e1ab75bb6c822afa"
+                "92a3bbb54f74cab7"
             ]
         ]
     },
     {
-        "id": "e1ab75bb6c822afa",
+        "id": "92a3bbb54f74cab7",
         "type": "function",
-        "z": "a8d54a5ec3c735f0",
+        "z": "bf00516c9989c067",
         "name": "simulated ill horse params",
         "func": "let r_temp = global.get(\"TEMP\") || [37.5, 38.5];\nlet r_hr = global.get(\"HR\") || [36, 40];\nlet r_ox = global.get(\"OX\") || [95, 100];\nlet r_x = global.get(\"X\") || [-1, 1];\nlet r_y = global.get(\"Y\") || [-1, 1];\nlet r_z = global.get(\"Z\") || [9.6, 10];\nlet r_lat = global.get(\"LAT\") || [40.4, 40.41];\nlet r_long = global.get(\"LONG\") || [-3.69, -3.68];\n\nlet temperature = parseFloat((Math.random() * (r_temp[1] - r_temp[0]) + r_temp[0]).toFixed(2));\nlet hr = Math.floor(Math.random() * (r_hr[1] - r_hr[0] + 1)) + r_hr[0];\nlet oximetry = Math.floor(Math.random() * (r_ox[1] - r_ox[1] + 1)) + r_ox[0];\nlet x = parseFloat((Math.random() * (r_x[1] - r_x[0]) + r_x[0]).toFixed(2));\nlet y = parseFloat((Math.random() * (r_y[1] - r_y[0]) + r_y[0]).toFixed(2));\nlet z = parseFloat((Math.random() * (r_z[1] - r_z[0]) + r_z[0]).toFixed(2));\nlet lat = parseFloat((Math.random() * (r_lat[1] - r_lat[0]) + r_lat[0]).toFixed(6));\nlet long = parseFloat((Math.random() * (r_long[1] - r_long[0]) + r_long[0]).toFixed(6));\n\n// Randomly determine which property will have an out-of-range value\nlet outOfRangeProperty = Math.floor(Math.random() * 3);\n\nif (outOfRangeProperty === 0) {\n    temperature = parseFloat((Math.random() * ((r_temp[1] + 4) - (r_temp[1] + 0.01)) + (r_temp[1] + 0.01)).toFixed(2));\n} else if (outOfRangeProperty === 1) {\n    let hr_range = Math.random() < 0.5 ? [r_hr[1] + 1, r_hr[1] + 10] : [r_hr[0] - 6, r_hr[0] - 1];\n    hr = Math.floor(Math.random() * (hr_range[1] - hr_range[0] + 1)) + hr_range[0];\n} else if (outOfRangeProperty === 2) {\n    oximetry = Math.floor(Math.random() * ((r_ox[0] - 1) - (r_ox[0] - 10) + 1)) + (r_ox[0] - 10);\n}\n\nlet message = { \n    payload: {\n        \"temperature\": temperature,\n        \"HR\": hr,\n        \"oximetry\": oximetry,\n        \"x\": x,\n        \"y\": y,\n        \"z\": z,\n        \"lat\": lat,\n        \"long\": long\n    } \n};\n\nreturn message;\n",
         "outputs": 1,
@@ -589,7 +589,7 @@
         "y": 440,
         "wires": [
             [
-                "64b909877c08c727"
+                "9184c9c6c8765002"
             ]
         ]
     }
