@@ -56,10 +56,12 @@ colors = {
     "purple": (1, 0, 1)
 }
 
+
 def set_rgb_color(r, g, b):
     red_pwm.value = r
     green_pwm.value = g
     blue_pwm.value = b
+
 
 def display_number(num):
     for segment in segments.values():
@@ -67,12 +69,14 @@ def display_number(num):
     for segment in numbers.get(num, []):
         segments[segment].on()
 
+
 def process_message(message):
     try:
         data = json.loads(message)
         led_color = data.get("led", "negro")
         horse_number = data.get("horse", 0)
         buzzer_state = data.get("buzzer", False)
+        device_name = data.get("deviceName", "Ningun dispositivo")
 
         # Actualizar LEDs
         color = colors.get(led_color, colors["negro"])
@@ -87,10 +91,29 @@ def process_message(message):
         else:
             buzzer.off()
 
-        logging.info(f"Actualizado: Caballo {horse_number}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
+        logging.info(
+            f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
 
     except Exception as e:
         logging.error(f"Error procesando mensaje MQTT: {e}")
+
+
+def handle_button_press():
+    start_time = time()
+    while button.is_pressed:
+        sleep(0.1)
+    press_duration = time() - start_time
+
+    if press_duration < 2:
+        # Restablecer a 0
+        logging.info("Botón presionado brevemente: Restableciendo a estado inicial.")
+        display_number('0')
+        set_rgb_color(*colors["verde"])
+        buzzer.off()
+    else:
+        # Llamar al veterinario
+        logging.info("Pulsación prolongada detectada: Llamar al veterinario.")
+
 
 # Configuración de MQTT
 broker = "srv-iot.diatel.upm.es"
@@ -103,6 +126,7 @@ client = mqtt.Client()
 client.username_pw_set(access_token)
 client.tls_set()
 
+
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logging.info("Conexión al broker MQTT exitosa.")
@@ -110,9 +134,11 @@ def on_connect(client, userdata, flags, rc):
     else:
         logging.error(f"Error al conectar con el broker, código: {rc}")
 
+
 def on_message(client, userdata, msg):
     logging.info(f"Mensaje recibido: {msg.payload.decode()}")
     process_message(msg.payload.decode())
+
 
 client.on_connect = on_connect
 client.on_message = on_message
@@ -124,8 +150,10 @@ try:
 except Exception as e:
     logging.error(f"Error al conectar con el broker MQTT: {e}")
 
+
 def main():
     logging.info("Sistema de monitoreo iniciado.")
+    button.when_pressed = handle_button_press
     try:
         while True:
             sleep(1)
@@ -140,6 +168,7 @@ def main():
         client.loop_stop()
         client.disconnect()
         logging.info("MQTT client desconectado.")
+
 
 if __name__ == "__main__":
     main()
