@@ -1,7 +1,6 @@
 import logging
 from time import sleep, time
 import json
-import random
 import paho.mqtt.client as mqtt
 from gpiozero import LED, PWMLED, Button, Buzzer
 
