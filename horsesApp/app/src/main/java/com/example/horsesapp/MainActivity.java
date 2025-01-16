@@ -7,13 +7,9 @@ package com.example.horsesapp;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,10 +17,33 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.hivemq.client.mqtt.MqttClient;
 import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.util.HashMap;
+import java.util.Map;
+
+
 public class MainActivity extends AppCompatActivity {
 
-    private final String[] horses = {"Horse 0", "Horse 1", "Horse 2", "Horse 3", "Horse 4",
-            "Horse 5", "Horse 6", "Horse 7", "Horse 8", "Horse 9"};
+    public static Map<String, HorseData> horseDataMap = new HashMap<>();
+
+    public static class HorseData {
+        public double temperature = -1; // Temperatura predeterminada
+        public double oximetry = -1;    // Oxímetro predeterminado
+        public int heartRate = -1;      // Frecuencia cardíaca predeterminada
+    }
+
+    private final String[] horses = {
+            "horse real 0",
+            "horse sim 1",
+            "horse sim 2",
+            "horse sim 3",
+            "horse sim 4",
+            "horse sim 5",
+            "horse sim 6",
+            "horse sim 7",
+            "horse sim 8",
+            "horse sim 9"};
 
     String TAG = "HORSE APP MQTT";
     String serverHost = "srv-iot.diatel.upm.es";
@@ -58,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
             String selectedHorse = horses[position];
             Intent intent = new Intent(MainActivity.this, HorseDetailActivity.class);
             intent.putExtra("horseName", selectedHorse);
+            intent.putExtra("horseIndex", position); // Pasa el índice del caballo
             startActivity(intent);
         });
 
@@ -108,16 +128,38 @@ public class MainActivity extends AppCompatActivity {
                 .callback(publish -> {
                     String receivedMessage = new String(publish.getPayloadAsBytes());
                     Log.d(TAG, "Message received: " + receivedMessage);
-                })
-                .send()
-                .whenComplete((subAck, throwable) -> {
-                    if (throwable != null) {
-                        Log.d(TAG, "Problem subscribing to topic:");
-                        Log.d(TAG, throwable.toString());
-                    } else {
-                        Log.d(TAG, "Subscribed to topic");
+
+                    try {
+                        JSONObject jsonMessage = new JSONObject(receivedMessage);
+
+                        String deviceName = jsonMessage.optString("deviceName", "unknown");
+                        double temperature = jsonMessage.optDouble("temperature", -1);
+                        double oximetry = jsonMessage.optDouble("oximetry", -1);
+                        int heartRate = jsonMessage.optInt("HR", -1);
+
+                        // Almacenar los datos en el mapa estático
+                        MainActivity.HorseData horseData = MainActivity.horseDataMap.getOrDefault(deviceName, new MainActivity.HorseData());
+
+                        // Solo actualizar si los valores son válidos
+                        if (temperature != -1) horseData.temperature = temperature;
+                        if (oximetry != -1) horseData.oximetry = oximetry;
+                        if (heartRate != -1) horseData.heartRate = heartRate;
+
+                        MainActivity.horseDataMap.put(deviceName, horseData);
+
+                        // Enviar la difusión
+                        Intent intent = new Intent("UPDATE_HORSE_DETAILS");
+                        intent.putExtra("horseName", deviceName);
+                        intent.putExtra("temperature", temperature);
+                        intent.putExtra("oximetry", oximetry);
+                        intent.putExtra("heartRate", heartRate);
+                        sendBroadcast(intent);
+
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Error parsing JSON: " + e.getMessage());
                     }
-                });
+                })
+                .send();
     }
 
     private void publishMessage(String payload) {
