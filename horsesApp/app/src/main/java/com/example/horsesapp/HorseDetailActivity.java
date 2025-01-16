@@ -14,7 +14,7 @@ public class HorseDetailActivity extends AppCompatActivity {
 
     private static final String TAG = "HorseDetailActivity";
     private int horseIndex;
-    private TextView temperatureView, oximetryView, hrView, horseNameView;
+    private TextView temperatureView, oximetryView, hrView, horseNameView, lastUpdatedView;
 
     String TAG1 = "FRONT MESSAGE mqtt";
 
@@ -26,6 +26,7 @@ public class HorseDetailActivity extends AppCompatActivity {
             double temperature = intent.getDoubleExtra("temperature", -1);
             double oximetry = intent.getDoubleExtra("oximetry", -1);
             int heartRate = intent.getIntExtra("heartRate", -1);
+            String lastUpdated = intent.getStringExtra("lastUpdated");
 
             if (deviceName != null && deviceName.equals(horseNameView.getText().toString())) {
                 if (temperature != -1) {
@@ -36,6 +37,9 @@ public class HorseDetailActivity extends AppCompatActivity {
                 }
                 if (heartRate != -1) {
                     hrView.setText(String.format("Frecuencia Cardíaca: %d bpm", heartRate));
+                }
+                if (lastUpdated != null) {
+                    lastUpdatedView.setText(String.format("Última actualización: %s", lastUpdated));
                 }
             }
         }
@@ -48,17 +52,18 @@ public class HorseDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_horse_detail);
 
-        String horseName = getIntent().getStringExtra("horseName");
-        horseIndex = getIntent().getIntExtra("horseIndex", -1);
-
         horseNameView = findViewById(R.id.horse_name);
         temperatureView = findViewById(R.id.temperature);
         oximetryView = findViewById(R.id.oximetry);
         hrView = findViewById(R.id.heart_rate);
+        lastUpdatedView = findViewById(R.id.last_updated);
+
+        // Obtener datos iniciales
+        String horseName = getIntent().getStringExtra("horseName");
+        horseIndex = getIntent().getIntExtra("horseIndex", -1);
 
         horseNameView.setText(horseName);
 
-        // Recuperar datos del mapa y actualizarlos
         MainActivity.HorseData horseData = MainActivity.horseDataMap.get(horseName);
         if (horseData != null) {
             if (horseData.temperature != -1) {
@@ -70,20 +75,20 @@ public class HorseDetailActivity extends AppCompatActivity {
             if (horseData.heartRate != -1) {
                 hrView.setText(String.format("Frecuencia Cardíaca: %d bpm", horseData.heartRate));
             }
-        } else {
-            temperatureView.setText("Temperatura: N/A");
-            oximetryView.setText("Oxímetro: N/A");
-            hrView.setText("Frecuencia Cardíaca: N/A");
+            lastUpdatedView.setText(String.format("Última actualización: %s", horseData.lastUpdated));
         }
-
-        // Registrar receptor de difusión
-        registerReceiver(updateReceiver, new IntentFilter("UPDATE_HORSE_DETAILS"));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         // Desregistrar receptor de difusión
-        unregisterReceiver(updateReceiver);
+        try {
+            unregisterReceiver(updateReceiver);
+            Log.d(TAG, "Receiver unregistered successfully.");
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "Receiver was not registered or already unregistered: " + e.getMessage());
+        }
     }
+
 }

@@ -22,6 +22,9 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         public double temperature = -1; // Temperatura predeterminada
         public double oximetry = -1;    // Oxímetro predeterminado
         public int heartRate = -1;      // Frecuencia cardíaca predeterminada
+        public String lastUpdated = "Sin actualizar"; // Hora de última actualización
     }
 
     private final String[] horses = {
@@ -137,22 +141,25 @@ public class MainActivity extends AppCompatActivity {
                         double oximetry = jsonMessage.optDouble("oximetry", -1);
                         int heartRate = jsonMessage.optInt("HR", -1);
 
-                        // Almacenar los datos en el mapa estático
-                        MainActivity.HorseData horseData = MainActivity.horseDataMap.getOrDefault(deviceName, new MainActivity.HorseData());
+                        // Obtener hora actual
+                        String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
 
-                        // Solo actualizar si los valores son válidos
+                        // Actualizar datos en el mapa
+                        MainActivity.HorseData horseData = MainActivity.horseDataMap.getOrDefault(deviceName, new MainActivity.HorseData());
                         if (temperature != -1) horseData.temperature = temperature;
                         if (oximetry != -1) horseData.oximetry = oximetry;
                         if (heartRate != -1) horseData.heartRate = heartRate;
+                        horseData.lastUpdated = currentTime;
 
                         MainActivity.horseDataMap.put(deviceName, horseData);
 
-                        // Enviar la difusión
+                        // Enviar difusión
                         Intent intent = new Intent("UPDATE_HORSE_DETAILS");
                         intent.putExtra("horseName", deviceName);
                         intent.putExtra("temperature", temperature);
                         intent.putExtra("oximetry", oximetry);
                         intent.putExtra("heartRate", heartRate);
+                        intent.putExtra("lastUpdated", currentTime);
                         sendBroadcast(intent);
 
                     } catch (JSONException e) {
@@ -161,7 +168,6 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .send();
     }
-
     private void publishMessage(String payload) {
         if (payload == null || payload.isEmpty()) {
             // Si el mensaje está vacío, no hacemos nada
