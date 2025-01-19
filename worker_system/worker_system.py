@@ -1,6 +1,7 @@
+import json
 import logging
 from time import sleep, time
-import json
+
 import paho.mqtt.client as mqtt
 from gpiozero import LED, PWMLED, Button, Buzzer
 
@@ -13,6 +14,11 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
+# stable led ->
+# Patilla larga (ánodo): conectada a la resistencia y la resistencia al pin GPIO22.
+# Patilla corta (cátodo): conectada a tierra (GND).
+stable_led = LED(22)
 
 # Configuración de LEDs y sensores
 red_pwm = PWMLED(21)
@@ -56,6 +62,13 @@ colors = {
 }
 
 
+def toggle_stable_led(state):
+    if state:
+        stable_led.on()
+    else:
+        stable_led.off()
+
+
 def set_rgb_color(r, g, b):
     red_pwm.value = r
     green_pwm.value = g
@@ -76,6 +89,7 @@ def process_message(message):
         horse_number = data.get("horse", 0)
         buzzer_state = data.get("buzzer", False)
         device_name = data.get("deviceName", "Ningun dispositivo")
+        stable_state = data.get("stable_led", False)  # Añadido para el LED del establo
 
         # Actualizar LEDs
         color = colors.get(led_color, colors["negro"])
@@ -84,6 +98,9 @@ def process_message(message):
         # Mostrar número del caballo
         display_number(str(horse_number))
 
+        # Actualizar estado del LED del establo
+        toggle_stable_led(stable_state)
+
         # Actualizar estado del buzzer
         if buzzer_state:
             buzzer.on()
@@ -91,7 +108,7 @@ def process_message(message):
             buzzer.off()
 
         logging.info(
-            f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
+            f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}, Stable LED {'ON' if stable_state else 'OFF'}")
 
     except Exception as e:
         logging.error(f"Error procesando mensaje MQTT: {e}")
