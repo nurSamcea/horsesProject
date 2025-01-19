@@ -19,12 +19,12 @@ import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import java.util.HashMap;
-import java.util.Map;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -84,9 +84,6 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("horseIndex", position); // Pasa el índice del caballo
             startActivity(intent);
         });
-
-        // Simular una alerta (puedes integrarlo con datos reales más adelante)
-        simulateAlert();
     }
 
     @Override
@@ -140,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                         double temperature = jsonMessage.optDouble("temperature", -1);
                         double oximetry = jsonMessage.optDouble("oximetry", -1);
                         int heartRate = jsonMessage.optInt("HR", -1);
+                        boolean alert = jsonMessage.optBoolean("alert", false); // Detectar si hay una alerta
 
                         // Obtener hora actual
                         String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
@@ -162,21 +160,67 @@ public class MainActivity extends AppCompatActivity {
                         intent.putExtra("lastUpdated", currentTime);
                         sendBroadcast(intent);
 
+                        // Mostrar alerta si alert=true
+                        if (alert) {
+                            runOnUiThread(() -> showAlert(deviceName, temperature, oximetry, heartRate));
+                        }
+
                     } catch (JSONException e) {
                         Log.e(TAG, "Error parsing JSON: " + e.getMessage());
                     }
                 })
                 .send();
     }
+
+    private void showAlert(String deviceName, double temperature, double oximetry, int heartRate) {
+        String alertMessage = String.format(
+                "¡Alerta detectada para %s!\n\nTemperatura: %.1f °C\nOxímetro: %.1f%%\nFrecuencia cardíaca: %d bpm",
+                deviceName,
+                temperature,
+                oximetry,
+                heartRate
+        );
+
+        new AlertDialog.Builder(this)
+                .setTitle("ALERTA CRÍTICA")
+                .setMessage(alertMessage)
+                .setCancelable(false)
+                .setPositiveButton("Voy en camino", (dialog, which) -> {
+                    Toast.makeText(this, "Marcado como en camino.", Toast.LENGTH_SHORT).show();
+
+                    try {
+                        // Crear el payload como un JSONObject
+                        JSONObject payloadJson = new JSONObject();
+                        payloadJson.put("deviceName", deviceName);
+                        payloadJson.put("status", true); // Agregar status como true
+                        payloadJson.put("temperature", temperature);
+                        payloadJson.put("oximetry", oximetry);
+                        payloadJson.put("heartRate", heartRate);
+
+                        // Convertir el JSONObject a cadena
+                        String payload = payloadJson.toString();
+
+                        // Publicar el mensaje al tópico MQTT
+                        publishMessage(payload);
+
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Error al construir el JSON del payload: " + e.getMessage());
+                    }
+                })
+                .setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
+    }
+
     private void publishMessage(String payload) {
         if (payload == null || payload.isEmpty()) {
-            // Si el mensaje está vacío, no hacemos nada
             Log.d(TAG, "El mensaje está vacío. No se publicará.");
             return;
         }
 
+        Log.d(TAG, "Publicando mensaje: " + payload); // Verificar el contenido del mensaje
+
         if (client == null || !client.getState().isConnected()) {
-            // Verifica que el cliente MQTT esté conectado
             Log.d(TAG, "El cliente MQTT no está conectado. No se puede publicar.");
             return;
         }
@@ -192,22 +236,6 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(TAG, "Mensaje publicado en el tópico: " + publishingTopic);
                     }
                 });
-    }
-
-    private void simulateAlert() {
-        String alertMessage = "Temperatura alta detectada en Caballo 1.";
-
-        new AlertDialog.Builder(this)
-                .setTitle("Alerta: Caballo 1")
-                .setMessage(alertMessage)
-                .setPositiveButton("Voy en camino", (dialog, which) -> {
-                    Toast.makeText(this, "Marcado como en camino.", Toast.LENGTH_SHORT).show();
-                    String defaultPayload = "Caballo 1: Operario en camino. Alerta: " + alertMessage;
-                    publishMessage(defaultPayload); // Publica un mensaje predefinido
-                })
-                .setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss())
-                .create()
-                .show();
     }
 
     void disconnectFromBroker() {
