@@ -55,9 +55,9 @@ public class MainActivity extends AppCompatActivity {
     String access_token = "n8qc2l1jo0cpt5w6bhm6";
 
     String subscriptionTopic = "v1/devices/me/attributes";
-    String publishingTopic = "v1/devices/me/telemetry";
+    public static String publishingTopic = "v1/devices/me/telemetry";
 
-    Mqtt3AsyncClient client;
+    public static Mqtt3AsyncClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -191,11 +191,8 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         // Crear el payload como un JSONObject
                         JSONObject payloadJson = new JSONObject();
-                        payloadJson.put("deviceName", deviceName);
+                        payloadJson.put("speakerDeviceName", "");
                         payloadJson.put("status", true); // Agregar status como true
-                        payloadJson.put("temperature", temperature);
-                        payloadJson.put("oximetry", oximetry);
-                        payloadJson.put("heartRate", heartRate);
 
                         // Convertir el JSONObject a cadena
                         String payload = payloadJson.toString();

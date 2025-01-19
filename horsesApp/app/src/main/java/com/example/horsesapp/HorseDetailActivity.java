@@ -6,15 +6,21 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class HorseDetailActivity extends AppCompatActivity {
 
-    private static final String TAG = "HorseDetailActivity";
+    private static final String TAG = "MQTT";
     private int horseIndex;
     private TextView temperatureView, oximetryView, hrView, horseNameView, lastUpdatedView;
+    private Button activateSpeakerButton; // Botón para activar el altavoz
 
     String TAG1 = "FRONT MESSAGE mqtt";
 
@@ -57,6 +63,7 @@ public class HorseDetailActivity extends AppCompatActivity {
         oximetryView = findViewById(R.id.oximetry);
         hrView = findViewById(R.id.heart_rate);
         lastUpdatedView = findViewById(R.id.last_updated);
+        activateSpeakerButton = findViewById(R.id.activate_speaker_button);
 
         // Obtener datos iniciales
         String horseName = getIntent().getStringExtra("horseName");
@@ -76,6 +83,53 @@ public class HorseDetailActivity extends AppCompatActivity {
                 hrView.setText(String.format("Frecuencia Cardíaca: %d bpm", horseData.heartRate));
             }
             lastUpdatedView.setText(String.format("Última actualización: %s", horseData.lastUpdated));
+        }
+
+        // Configurar el botón para activar el altavoz
+        activateSpeakerButton.setOnClickListener(v -> activateSpeaker(horseName));
+
+    }
+
+    private void publishMessage(String payload) {
+        if (payload == null || payload.isEmpty()) {
+            Log.d(TAG, "El mensaje está vacío. No se publicará.");
+            return;
+        }
+
+        Log.d(TAG, "Publicando mensaje desde HorseDetailActivity: " + payload);
+
+        // Usar el cliente MQTT estático desde MainActivity
+        if (MainActivity.client == null || !MainActivity.client.getState().isConnected()) {
+            Log.d(TAG, "El cliente MQTT no está conectado. No se puede publicar.");
+            return;
+        }
+
+        MainActivity.client.publishWith()
+                .topic(MainActivity.publishingTopic) // Reutilizar el tópico definido en MainActivity
+                .payload(payload.getBytes())
+                .send()
+                .whenComplete((publish, throwable) -> {
+                    if (throwable != null) {
+                        Log.e(TAG, "Error publicando el mensaje en el tópico " + MainActivity.publishingTopic, throwable);
+                    } else {
+                        Log.d(TAG, "Mensaje publicado en el tópico: " + MainActivity.publishingTopic);
+                    }
+                });
+    }
+
+
+    private void activateSpeaker(String horseName) {
+        try {
+            JSONObject payloadJson = new JSONObject();
+            payloadJson.put("speakerDeviceName", horseName);
+            payloadJson.put("status", false);
+
+            String payload = payloadJson.toString();
+            publishMessage(payload); // Llamar al método para publicar el mensaje
+
+            Toast.makeText(this, "Altavoz activado para " + horseName, Toast.LENGTH_SHORT).show();
+        } catch (JSONException e) {
+            Log.e(TAG, "Error al construir el JSON: " + e.getMessage());
         }
     }
 
