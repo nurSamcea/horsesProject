@@ -204,8 +204,6 @@ void loop() {
     float avg_temp = sum_temp / counter;
     float avg_hum = sum_hum / counter;
 
-    avg_temp = 39.8;
-
     String payload = "{\"temperature\":" + String(avg_temp) + 
                     ",\"humidity\":" + String(avg_hum) + "}";
 
