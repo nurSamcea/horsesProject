@@ -17,3 +17,18 @@ ESP32
   - HUM_MIN 40
     
 ## Worker system
+
+Rasp Berry
+
+- sensors/publish:
+   - press buttom long -> **reading by the app**
+   - press buttom short -> reset alarms in the own board
+- Actuators:
+    - LED RGB: **subscribe to horses**: : Maintain an array of 10 horses, tracking the state of each one. If any of them is sick, the LED turns on, showing the most serious one (purple) or the last one to trigger an alarm.
+    - LED: **subscribe to stable**
+- Attributes:
+  - led: string (color)
+  - horse: number
+  - deviceName: String
+  - ledStable: bool
+  - buzzer: bool
