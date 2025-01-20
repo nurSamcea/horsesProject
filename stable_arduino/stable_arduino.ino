@@ -2,8 +2,13 @@
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
+#include <ArduinoJson.h>
+
+#define NUM_HORSES 10
+#define MAX_JSON 200
 
 #define LED_GREEN 16
+#define LED_YELLOW 19
 
 #define TEMP_MAX 28
 #define TEMP_MIN 18
@@ -21,7 +26,8 @@ const char* password = "";
 // Configuration MQTT
 const char* mqtt_server = "srv-iot.diatel.upm.es";
 const int mqtt_port = 8883;
-const char* mqtt_topic = "v1/devices/me/telemetry";
+const char* mqtt_topic_pub = "v1/devices/me/telemetry";
+const char* mqtt_topic_sub = "v1/devices/me/attributes";
 const char* mqtt_token = "7lXu9ibhq7fLlzXdawoH"; 
 
 // Clients Wi-Fi y MQTT
@@ -59,11 +65,62 @@ void reconnect() {
     Serial.print("Connecting to MQTT...");
     if (client.connect("Esp32", mqtt_token, NULL)) {
       Serial.println("connected");
+
+      client.subscribe(mqtt_topic_sub); 
+      Serial.print("Subscribe to topic: ");
+      Serial.println(mqtt_topic_sub);
     } else {
       Serial.print("Failed, rc=");
       Serial.print(client.state());
       Serial.println(" Trying again in 5 seconds...");
       delay(5000);
+    }
+  }
+}
+
+bool horses[NUM_HORSES];
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  Serial.print("Message received on topic: ");
+  Serial.println(topic);
+
+  if (strcmp(topic, mqtt_topic_sub) == 0) {    
+    // Convert payload to string
+    char message[length + 1];
+    memcpy(message, payload, length);
+    message[length] = '\0';
+
+    StaticJsonDocument<MAX_JSON> doc;
+    DeserializationError error = deserializeJson(doc, message);
+
+    if (error) {
+      Serial.print("deserializeJson() failed: ");
+      Serial.println(error.f_str());
+      return;
+    }
+
+    bool led = doc["led"];
+    const char* deviceName = doc["deviceName"];
+    int horse = doc["horse"];
+
+    Serial.print("led: ");
+    Serial.println(led);
+    Serial.print("deviceName: ");
+    Serial.println(deviceName);
+    Serial.print("horse: ");
+    Serial.println(horse);
+
+    if (horse >= 0 && horse < NUM_HORSES) {
+      horses[horse] = led;
+      int status_led = LOW;
+
+      for (int i = 0; i < NUM_HORSES; i++) {
+        if (horses[i] == true) {
+          status_led = HIGH;
+          break;
+        }
+      }
+      digitalWrite(LED_YELLOW, status_led);
     }
   }
 }
@@ -84,10 +141,15 @@ void setup() {
   setup_wifi();
   espClient.setInsecure(); // Disable TLS
   client.setServer(mqtt_server, mqtt_port);
+  client.setCallback(callback);
 
   // Led stable status
   pinMode(LED_GREEN, OUTPUT);
   digitalWrite(LED_GREEN, LOW);
+
+  // Led horses 
+  pinMode(LED_YELLOW, OUTPUT);
+  digitalWrite(LED_YELLOW, LOW);
 
   // Init variables
   counter = 0.0;
@@ -96,6 +158,10 @@ void setup() {
 
   temperature = 23.0;
   humidity = 60.0;
+
+  for(int i = 0; i < NUM_HORSES; i++) {
+    horses[i] = false;
+  }
 
   time_read = millis();
   time_pub = millis();
@@ -138,10 +204,12 @@ void loop() {
     float avg_temp = sum_temp / counter;
     float avg_hum = sum_hum / counter;
 
+    avg_temp = 39.8;
+
     String payload = "{\"temperature\":" + String(avg_temp) + 
                     ",\"humidity\":" + String(avg_hum) + "}";
 
-    if (client.publish(mqtt_topic, payload.c_str())) {
+    if (client.publish(mqtt_topic_pub, payload.c_str())) {
       Serial.println("Message published successfully");
       Serial.println(payload);
     } else {
