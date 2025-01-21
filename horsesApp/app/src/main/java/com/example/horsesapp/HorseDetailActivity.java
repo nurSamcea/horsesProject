@@ -9,47 +9,26 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
+import android.os.Build;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class HorseDetailActivity extends AppCompatActivity {
+import android.content.IntentFilter;
+import com.example.horsesapp.MainActivity;
 
+public class HorseDetailActivity extends AppCompatActivity {
     private static final String TAG = "MQTT";
     private int horseIndex;
     private TextView temperatureView, oximetryView, hrView, horseNameView, lastUpdatedView;
+    private TextView accelerationYView, accelerationXView, accelerationZView, latitudeView, longitudeView;
     private Button activateSpeakerButton; // Button to activate the speaker
 
     String TAG1 = "FRONT MESSAGE mqtt";
 
-    private final BroadcastReceiver updateReceiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String deviceName = intent.getStringExtra("horseName");
-            double temperature = intent.getDoubleExtra("temperature", -1);
-            double oximetry = intent.getDoubleExtra("oximetry", -1);
-            int heartRate = intent.getIntExtra("heartRate", -1);
-            String lastUpdated = intent.getStringExtra("lastUpdated");
-
-            if (deviceName != null && deviceName.equals(horseNameView.getText().toString())) {
-                if (temperature != -1) {
-                    temperatureView.setText(String.format("Temperature: %.1f °C", temperature));
-                }
-                if (oximetry != -1) {
-                    oximetryView.setText(String.format("Oximeter: %.1f%%", oximetry));
-                }
-                if (heartRate != -1) {
-                    hrView.setText(String.format("Heart Rate: %d bpm", heartRate));
-                }
-                if (lastUpdated != null) {
-                    lastUpdatedView.setText(String.format("Last updated: %s", lastUpdated));
-                }
-            }
-        }
-    };
+    private MyReceiver myReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +39,11 @@ public class HorseDetailActivity extends AppCompatActivity {
         temperatureView = findViewById(R.id.temperature);
         oximetryView = findViewById(R.id.oximetry);
         hrView = findViewById(R.id.heart_rate);
+        accelerationXView = findViewById(R.id.acceleration_x);
+        accelerationYView = findViewById(R.id.acceleration_y);
+        accelerationZView = findViewById(R.id.acceleration_z);
+        latitudeView = findViewById(R.id.location_latitude);
+        longitudeView = findViewById(R.id.location_longitude);
         lastUpdatedView = findViewById(R.id.last_updated);
         activateSpeakerButton = findViewById(R.id.activate_speaker_button);
 
@@ -71,16 +55,27 @@ public class HorseDetailActivity extends AppCompatActivity {
 
         MainActivity.HorseData horseData = MainActivity.horseDataMap.get(horseName);
         if (horseData != null) {
-            if (horseData.temperature != -1) {
-                temperatureView.setText(String.format("Temperature: %.1f °C", horseData.temperature));
+            if (horseData.temperature != MainActivity.DEFAULT_VAL_DOUBLE) {
+                temperatureView.setText(String.format("Temperature: %.2f °C", horseData.temperature));
             }
             if (horseData.oximetry != -1) {
-                oximetryView.setText(String.format("Oximeter: %.1f%%", horseData.oximetry));
+                oximetryView.setText(String.format("Oximetry: %d", horseData.oximetry));
             }
             if (horseData.heartRate != -1) {
                 hrView.setText(String.format("Heart Rate: %d bpm", horseData.heartRate));
             }
-            lastUpdatedView.setText(String.format("Last updated: %s", horseData.lastUpdated));
+            if (horseData.lastUpdated != null) {
+                lastUpdatedView.setText(String.format("Last updated: %s", horseData.lastUpdated));
+            }
+            if (horseData.x != MainActivity.DEFAULT_VAL_DOUBLE && horseData.y != MainActivity.DEFAULT_VAL_DOUBLE && horseData.z != MainActivity.DEFAULT_VAL_DOUBLE) {
+                accelerationXView.setText(String.format("Acceleration X: %.2f m/s²", horseData.x));
+                accelerationYView.setText(String.format("Acceleration Y: %.2f m/s²", horseData.y));
+                accelerationZView.setText(String.format("Acceleration Z: %.2f m/s²", horseData.z));
+            }
+            if (horseData.latitude != MainActivity.DEFAULT_VAL_DOUBLE && horseData.longitude != MainActivity.DEFAULT_VAL_DOUBLE) {
+                latitudeView.setText(String.format("Latitude: %.6f", horseData.latitude));
+                longitudeView.setText(String.format("Longitude: %.6f", horseData.longitude));
+            }
         }
 
         // Configure the button to activate the speaker
@@ -130,14 +125,26 @@ public class HorseDetailActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Unregister broadcast receiver
-        try {
-            unregisterReceiver(updateReceiver);
-            Log.d(TAG, "Receiver unregistered successfully.");
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Receiver was not registered or already unregistered: " + e.getMessage());
+    protected void onResume() {
+        super.onResume();
+
+        myReceiver = new MyReceiver(temperatureView, oximetryView, hrView, horseNameView,
+                lastUpdatedView, accelerationXView, accelerationYView, accelerationZView,
+                latitudeView, longitudeView);
+        IntentFilter filter = new IntentFilter(MainActivity.ACTION_MY_BROADCAST);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            registerReceiver(myReceiver, filter, Context.RECEIVER_EXPORTED);
+        } else {
+            registerReceiver(myReceiver, filter);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (myReceiver != null) {
+            unregisterReceiver(myReceiver);
         }
     }
 

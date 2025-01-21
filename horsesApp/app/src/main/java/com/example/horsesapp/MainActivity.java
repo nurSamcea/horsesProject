@@ -27,14 +27,18 @@ import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    public static double DEFAULT_VAL_DOUBLE = -200.0;
+    public static final String ACTION_MY_BROADCAST = "com.example.horsesapp.ACTION_MY_BROADCAST";
 
     public static Map<String, HorseData> horseDataMap = new HashMap<>();
 
     public static class HorseData {
-        public double temperature = -1; // Default temperature
-        public double oximetry = -1;    // Default oximetry
+        public double temperature = DEFAULT_VAL_DOUBLE; // Default temperature
+        public int oximetry = -1;    // Default oximetry
         public int heartRate = -1;      // Default heart rate
         public String lastUpdated = "Not updated"; // Last update time
+        public double x = DEFAULT_VAL_DOUBLE, y = DEFAULT_VAL_DOUBLE, z = DEFAULT_VAL_DOUBLE;
+        public double latitude = DEFAULT_VAL_DOUBLE, longitude = DEFAULT_VAL_DOUBLE;
     }
 
     private final String[] horses = {
@@ -134,9 +138,14 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject jsonMessage = new JSONObject(receivedMessage);
 
                         String deviceName = jsonMessage.optString("deviceName", "unknown");
-                        double temperature = jsonMessage.optDouble("temperature", -1);
-                        double oximetry = jsonMessage.optDouble("oximetry", -1);
+                        double temperature = jsonMessage.optDouble("temperature", DEFAULT_VAL_DOUBLE);
+                        int oximetry = jsonMessage.optInt("oximetry", -1);
                         int heartRate = jsonMessage.optInt("HR", -1);
+                        double x = jsonMessage.optDouble("x", DEFAULT_VAL_DOUBLE);
+                        double y = jsonMessage.optDouble("y", DEFAULT_VAL_DOUBLE);
+                        double z = jsonMessage.optDouble("z", DEFAULT_VAL_DOUBLE);
+                        double latitude = jsonMessage.optDouble("lat", DEFAULT_VAL_DOUBLE);
+                        double longitude = jsonMessage.optDouble("long", DEFAULT_VAL_DOUBLE);
                         boolean alert = jsonMessage.optBoolean("alert", false); // Detect if there's an alert
 
                         // Get current time
@@ -144,20 +153,34 @@ public class MainActivity extends AppCompatActivity {
 
                         // Update data in the map
                         MainActivity.HorseData horseData = MainActivity.horseDataMap.getOrDefault(deviceName, new MainActivity.HorseData());
-                        if (temperature != -1) horseData.temperature = temperature;
+                        if (temperature != DEFAULT_VAL_DOUBLE) horseData.temperature = temperature;
                         if (oximetry != -1) horseData.oximetry = oximetry;
                         if (heartRate != -1) horseData.heartRate = heartRate;
+                        if (x != DEFAULT_VAL_DOUBLE && y != DEFAULT_VAL_DOUBLE && z != DEFAULT_VAL_DOUBLE) {
+                            horseData.x = x;
+                            horseData.y = y;
+                            horseData.z = z;
+                        }
+                        if (latitude != DEFAULT_VAL_DOUBLE && longitude != DEFAULT_VAL_DOUBLE) {
+                            horseData.latitude = latitude;
+                            horseData.longitude = longitude;
+                        }
                         horseData.lastUpdated = currentTime;
 
                         MainActivity.horseDataMap.put(deviceName, horseData);
 
                         // Send broadcast
-                        Intent intent = new Intent("UPDATE_HORSE_DETAILS");
+                        Intent intent = new Intent(ACTION_MY_BROADCAST);
                         intent.putExtra("horseName", deviceName);
                         intent.putExtra("temperature", temperature);
                         intent.putExtra("oximetry", oximetry);
                         intent.putExtra("heartRate", heartRate);
                         intent.putExtra("lastUpdated", currentTime);
+                        intent.putExtra("x", x);
+                        intent.putExtra("y", y);
+                        intent.putExtra("z", z);
+                        intent.putExtra("lat", latitude);
+                        intent.putExtra("long", longitude);
                         sendBroadcast(intent);
 
                         // Show alert if alert=true

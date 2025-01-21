@@ -43,6 +43,46 @@
             android:layout_marginBottom="16dp" />
 
         <TextView
+            android:id="@+id/acceleration_x"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acceleration X: 0 m/s²"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/acceleration_y"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acceleration Y: 0 m/s²"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/acceleration_z"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acceleration Z: 0 m/s²"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/location_latitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Latitude: 0.000000"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/location_longitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Longitude: 0.000000"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
             android:id="@+id/last_updated"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
