@@ -81,9 +81,6 @@ void reconnect() {
 bool horses[NUM_HORSES];
 
 void callback(char* topic, byte* payload, unsigned int length) {
-  Serial.print("Message received on topic: ");
-  Serial.println(topic);
-
   if (strcmp(topic, mqtt_topic_sub) == 0) {    
     // Convert payload to string
     char message[length + 1];
@@ -100,14 +97,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
 
     bool led = doc["led"];
-    const char* deviceName = doc["deviceName"];
     int horse = doc["horse"];
 
     Serial.print("led: ");
-    Serial.println(led);
-    Serial.print("deviceName: ");
-    Serial.println(deviceName);
-    Serial.print("horse: ");
+    Serial.print(led);
+    Serial.print(", horse: ");
     Serial.println(horse);
 
     if (horse >= 0 && horse < NUM_HORSES) {
