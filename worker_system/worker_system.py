@@ -58,6 +58,7 @@ colors = {
     "blue": (0, 0, 1),
     "yellow": (1, 1, 0),
     "black": (0, 0, 0),
+    "orange": (1, 0.5, 0),
     "purple": (1, 0, 1)
 }
 
@@ -85,7 +86,7 @@ def display_number(num):
 def process_message(message):
     try:
         data = json.loads(message)
-        led_color = data.get("led", "negro")
+        led_color = data.get("led", "black")
         horse_number = data.get("horse", 0)
         buzzer_state = data.get("buzzer", False)
         device_name = data.get("deviceName", "Ningun dispositivo")
