@@ -107,12 +107,12 @@ def process_message(message):
             # Update buffer
             horses_array[horse_number] = (led_color, time())
 
-            indices_filtrados = [i for i, caballo in enumerate(horses_array) if "green" in caballo[0] or "black" in caballo[0]]
+            indices_filtrados = [i for i, caballo in enumerate(horses_array) if not "green" in caballo[0] and not "black" in caballo[0]]
             if indices_filtrados:
-                indice_reciente = max(indices_filtrados, key=lambda i: caballos[i][1])
-                print("Índice del caballo más reciente cuyo color contiene '{}':".format(subcadena), indice_reciente)
+                indice_reciente = max(indices_filtrados, key=lambda i: horses_array[i][1])
+                print("Índice del caballo más reciente cuyo color contiene '{}':".led_color, indice_reciente)
             else:
-                print("No hay caballos cuyo color contenga '{}'.".format(subcadena))
+                print("No hay caballos con alerts")
 
             # Actualizar LEDs
             color = colors.get(led_color, colors["black"])
