@@ -12,7 +12,7 @@
             android:id="@+id/horse_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Caballo 1"
+            android:text="Horse 1"
             android:textSize="28sp"
             android:textStyle="bold"
             android:layout_gravity="center_horizontal"
@@ -22,7 +22,7 @@
             android:id="@+id/temperature"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Temperatura: 38.5 °C"
+            android:text="Temperature: 38.5 °C"
             android:textSize="18sp"
             android:layout_marginBottom="16dp" />
 
@@ -30,7 +30,7 @@
             android:id="@+id/oximetry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Oxímetro: 95%"
+            android:text="Oximetry: 95%"
             android:textSize="18sp"
             android:layout_marginBottom="16dp" />
 
@@ -38,7 +38,47 @@
             android:id="@+id/heart_rate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Frecuencia Cardíaca: 72 bpm"
+            android:text="Heartbeat: 72 bpm"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/acceleration_x"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acceleration X: 0 m/s²"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/acceleration_y"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acceleration Y: 0 m/s²"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/acceleration_z"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Acceleration Z: 0 m/s²"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/location_latitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Latitude: 0.000000"
+            android:textSize="18sp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/location_longitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Longitude: 0.000000"
             android:textSize="18sp"
             android:layout_marginBottom="16dp" />
 
@@ -46,16 +86,15 @@
             android:id="@+id/last_updated"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Última actualización: N/A"
+            android:text="Last Update: N/A"
             android:textSize="16sp"
             android:layout_marginBottom="16dp" />
-
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Volver"
-            android:onClick="finish"
+            android:text="Back"
+            android:onClick="closeActivity"
             android:backgroundTint="@android:color/holo_blue_light"
             android:textColor="@android:color/white" />
 
@@ -63,9 +102,10 @@
             android:id="@+id/activate_speaker_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Activar Altavoz"
+            android:text="Activate Speaker"
             android:backgroundTint="@android:color/holo_red_light"
             android:textColor="@android:color/white"
             android:layout_marginTop="16dp" />
     </LinearLayout>
 </ScrollView>
+

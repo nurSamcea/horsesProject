@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="2b1741bc-b230-4fc3-9a4d-227b7fd5df08" name="Changes" comment="fix: some changes">
+      <change afterPath="$PROJECT_DIR$/worker_system/devices.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/worker_system/mqtt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/alarm_system/1digit.jpg" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/1digit.jpg" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/alarm_system/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/alarm_system/alarm1.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/alarm1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/alarm_system/prueba_led_1.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/prueba_led_1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/alarm_system/prueba_mqtt.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/prueba_mqtt.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/alarm_system/prueba_mqtt_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/prueba_mqtt_2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/alarm_system/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/alarm_system/run.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/run.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/worker_system/worker_system.py" beforeDir="false" afterPath="$PROJECT_DIR$/worker_system/worker_system.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;nurSamcea&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:nurSamcea/horsesProject.git&quot;,
+    &quot;accountId&quot;: &quot;6c1bd427-8401-4208-a0ef-e1efc01e049c&quot;
+  }
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="2rgBu3BIsghA95QY4psw2ig6Tfu" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feat/worker-system&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/nuria/proyectos/distributedSystems&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-d7ad00fb9fc3-c546a90a8094-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-242.23726.102" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="2b1741bc-b230-4fc3-9a4d-227b7fd5df08" name="Changes" comment="" />
+      <created>1736971056665</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1736971056665</updated>
+    </task>
+    <task id="LOCAL-00001" summary="fix: some changes">
+      <option name="closed" value="true" />
+      <created>1736972514069</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1736972514069</updated>
+    </task>
+    <task id="LOCAL-00002" summary="fix: some changes">
+      <option name="closed" value="true" />
+      <created>1736972604172</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1736972604172</updated>
+    </task>
+    <task id="LOCAL-00003" summary="fix: some changes">
+      <option name="closed" value="true" />
+      <created>1736973268978</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1736973268978</updated>
+    </task>
+    <task id="LOCAL-00004" summary="fix: some changes">
+      <option name="closed" value="true" />
+      <created>1736973744487</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1736973744487</updated>
+    </task>
+    <task id="LOCAL-00005" summary="fix: some changes">
+      <option name="closed" value="true" />
+      <created>1736974945532</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1736974945532</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
+    <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="fix: some changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: some changes" />
+  </component>
+</project>

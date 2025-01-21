@@ -5,6 +5,8 @@ from time import sleep, time
 import paho.mqtt.client as mqtt
 from gpiozero import LED, PWMLED, Button, Buzzer
 
+NUM_HORSES = 10
+
 # Configuración de logging
 logging.basicConfig(
     level=logging.INFO,
@@ -27,6 +29,9 @@ blue_pwm = PWMLED(16)
 
 buzzer = Buzzer(18)
 button = Button(17)
+
+currentHorse = -1
+horses_array = [("green", time.time())] * NUM_HORSES
 
 segments = {
     'A': LED(25),
@@ -87,11 +92,17 @@ def display_number(num):
 def process_message(message):
     try:
         data = json.loads(message)
+
+        device_name = data.get("deviceName", "Ningun dispositivo")
+
+        if (device_name == "stable"):
+            stable_state = data.get("stable_led", False)
+            toggle_stable_led(stable_state)
+
         led_color = data.get("led", "black")
         horse_number = data.get("horse", 0)
         buzzer_state = data.get("buzzer", False)
-        device_name = data.get("deviceName", "Ningun dispositivo")
-        stable_state = data.get("stable_led", False)  # Añadido para el LED del establo
+
 
         # Actualizar LEDs
         color = colors.get(led_color, colors["black"])
@@ -99,9 +110,6 @@ def process_message(message):
 
         # Mostrar número del caballo
         display_number(str(horse_number))
-
-        # Actualizar estado del LED del establo
-        toggle_stable_led(stable_state)
 
         # Actualizar estado del buzzer
         if buzzer_state:
@@ -130,7 +138,7 @@ def handle_button_press():
         buzzer.off()
     else:
         # Llamar al veterinario
-        alert_message = {"alert": True}
+        alert_message = {"alert": True, "horse": currentHorse}
         client.publish(topic_to_publish, json.dumps(alert_message), qos=1)
         logging.info("Mensaje publicado: Llamar al veterinario.")
 

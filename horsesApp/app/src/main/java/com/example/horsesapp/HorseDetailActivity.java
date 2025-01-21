@@ -3,55 +3,32 @@ package com.example.horsesapp;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
+import android.os.Build;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class HorseDetailActivity extends AppCompatActivity {
+import android.content.IntentFilter;
+import com.example.horsesapp.MainActivity;
 
+public class HorseDetailActivity extends AppCompatActivity {
     private static final String TAG = "MQTT";
     private int horseIndex;
     private TextView temperatureView, oximetryView, hrView, horseNameView, lastUpdatedView;
-    private Button activateSpeakerButton; // Botón para activar el altavoz
+    private TextView accelerationYView, accelerationXView, accelerationZView, latitudeView, longitudeView;
+    private Button activateSpeakerButton; // Button to activate the speaker
 
     String TAG1 = "FRONT MESSAGE mqtt";
 
-    private final BroadcastReceiver updateReceiver = new BroadcastReceiver() {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String deviceName = intent.getStringExtra("horseName");
-            double temperature = intent.getDoubleExtra("temperature", -1);
-            double oximetry = intent.getDoubleExtra("oximetry", -1);
-            int heartRate = intent.getIntExtra("heartRate", -1);
-            String lastUpdated = intent.getStringExtra("lastUpdated");
-
-            if (deviceName != null && deviceName.equals(horseNameView.getText().toString())) {
-                if (temperature != -1) {
-                    temperatureView.setText(String.format("Temperatura: %.1f °C", temperature));
-                }
-                if (oximetry != -1) {
-                    oximetryView.setText(String.format("Oxímetro: %.1f%%", oximetry));
-                }
-                if (heartRate != -1) {
-                    hrView.setText(String.format("Frecuencia Cardíaca: %d bpm", heartRate));
-                }
-                if (lastUpdated != null) {
-                    lastUpdatedView.setText(String.format("Última actualización: %s", lastUpdated));
-                }
-            }
-        }
-
-
-    };
+    private MyReceiver myReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,10 +39,15 @@ public class HorseDetailActivity extends AppCompatActivity {
         temperatureView = findViewById(R.id.temperature);
         oximetryView = findViewById(R.id.oximetry);
         hrView = findViewById(R.id.heart_rate);
+        accelerationXView = findViewById(R.id.acceleration_x);
+        accelerationYView = findViewById(R.id.acceleration_y);
+        accelerationZView = findViewById(R.id.acceleration_z);
+        latitudeView = findViewById(R.id.location_latitude);
+        longitudeView = findViewById(R.id.location_longitude);
         lastUpdatedView = findViewById(R.id.last_updated);
         activateSpeakerButton = findViewById(R.id.activate_speaker_button);
 
-        // Obtener datos iniciales
+        // Retrieve initial data
         String horseName = getIntent().getStringExtra("horseName");
         horseIndex = getIntent().getIntExtra("horseIndex", -1);
 
@@ -73,50 +55,59 @@ public class HorseDetailActivity extends AppCompatActivity {
 
         MainActivity.HorseData horseData = MainActivity.horseDataMap.get(horseName);
         if (horseData != null) {
-            if (horseData.temperature != -1) {
-                temperatureView.setText(String.format("Temperatura: %.1f °C", horseData.temperature));
+            if (horseData.temperature != MainActivity.DEFAULT_VAL_DOUBLE) {
+                temperatureView.setText(String.format("Temperature: %.2f °C", horseData.temperature));
             }
             if (horseData.oximetry != -1) {
-                oximetryView.setText(String.format("Oxímetro: %.1f%%", horseData.oximetry));
+                oximetryView.setText(String.format("Oximetry: %d", horseData.oximetry));
             }
             if (horseData.heartRate != -1) {
-                hrView.setText(String.format("Frecuencia Cardíaca: %d bpm", horseData.heartRate));
+                hrView.setText(String.format("Heart Rate: %d bpm", horseData.heartRate));
             }
-            lastUpdatedView.setText(String.format("Última actualización: %s", horseData.lastUpdated));
+            if (horseData.lastUpdated != null) {
+                lastUpdatedView.setText(String.format("Last updated: %s", horseData.lastUpdated));
+            }
+            if (horseData.x != MainActivity.DEFAULT_VAL_DOUBLE && horseData.y != MainActivity.DEFAULT_VAL_DOUBLE && horseData.z != MainActivity.DEFAULT_VAL_DOUBLE) {
+                accelerationXView.setText(String.format("Acceleration X: %.2f m/s²", horseData.x));
+                accelerationYView.setText(String.format("Acceleration Y: %.2f m/s²", horseData.y));
+                accelerationZView.setText(String.format("Acceleration Z: %.2f m/s²", horseData.z));
+            }
+            if (horseData.latitude != MainActivity.DEFAULT_VAL_DOUBLE && horseData.longitude != MainActivity.DEFAULT_VAL_DOUBLE) {
+                latitudeView.setText(String.format("Latitude: %.6f", horseData.latitude));
+                longitudeView.setText(String.format("Longitude: %.6f", horseData.longitude));
+            }
         }
 
-        // Configurar el botón para activar el altavoz
+        // Configure the button to activate the speaker
         activateSpeakerButton.setOnClickListener(v -> activateSpeaker(horseName));
-
     }
 
     private void publishMessage(String payload) {
         if (payload == null || payload.isEmpty()) {
-            Log.d(TAG, "El mensaje está vacío. No se publicará.");
+            Log.d(TAG, "The message is empty. It will not be published.");
             return;
         }
 
-        Log.d(TAG, "Publicando mensaje desde HorseDetailActivity: " + payload);
+        Log.d(TAG, "Publishing message from HorseDetailActivity: " + payload);
 
-        // Usar el cliente MQTT estático desde MainActivity
+        // Use the static MQTT client from MainActivity
         if (MainActivity.client == null || !MainActivity.client.getState().isConnected()) {
-            Log.d(TAG, "El cliente MQTT no está conectado. No se puede publicar.");
+            Log.d(TAG, "The MQTT client is not connected. Cannot publish.");
             return;
         }
 
         MainActivity.client.publishWith()
-                .topic(MainActivity.publishingTopic) // Reutilizar el tópico definido en MainActivity
+                .topic(MainActivity.publishingTopic) // Reuse the topic defined in MainActivity
                 .payload(payload.getBytes())
                 .send()
                 .whenComplete((publish, throwable) -> {
                     if (throwable != null) {
-                        Log.e(TAG, "Error publicando el mensaje en el tópico " + MainActivity.publishingTopic, throwable);
+                        Log.e(TAG, "Error publishing message to the topic " + MainActivity.publishingTopic, throwable);
                     } else {
-                        Log.d(TAG, "Mensaje publicado en el tópico: " + MainActivity.publishingTopic);
+                        Log.d(TAG, "Message published to the topic: " + MainActivity.publishingTopic);
                     }
                 });
     }
-
 
     private void activateSpeaker(String horseName) {
         try {
@@ -125,24 +116,39 @@ public class HorseDetailActivity extends AppCompatActivity {
             payloadJson.put("status", false);
 
             String payload = payloadJson.toString();
-            publishMessage(payload); // Llamar al método para publicar el mensaje
+            publishMessage(payload); // Call the method to publish the message
 
-            Toast.makeText(this, "Altavoz activado para " + horseName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Speaker activated for " + horseName, Toast.LENGTH_SHORT).show();
         } catch (JSONException e) {
-            Log.e(TAG, "Error al construir el JSON: " + e.getMessage());
+            Log.e(TAG, "Error building JSON: " + e.getMessage());
         }
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Desregistrar receptor de difusión
-        try {
-            unregisterReceiver(updateReceiver);
-            Log.d(TAG, "Receiver unregistered successfully.");
-        } catch (IllegalArgumentException e) {
-            Log.e(TAG, "Receiver was not registered or already unregistered: " + e.getMessage());
+    protected void onResume() {
+        super.onResume();
+
+        myReceiver = new MyReceiver(temperatureView, oximetryView, hrView, horseNameView,
+                lastUpdatedView, accelerationXView, accelerationYView, accelerationZView,
+                latitudeView, longitudeView);
+        IntentFilter filter = new IntentFilter(MainActivity.ACTION_MY_BROADCAST);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            registerReceiver(myReceiver, filter, Context.RECEIVER_EXPORTED);
+        } else {
+            registerReceiver(myReceiver, filter);
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        if (myReceiver != null) {
+            unregisterReceiver(myReceiver);
+        }
+    }
+
+    public void closeActivity(View view) {
+        finish();
+    }
 }

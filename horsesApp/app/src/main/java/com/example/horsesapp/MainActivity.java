@@ -1,6 +1,6 @@
 // VeterinaryOperatorApp.java
-// Código actualizado para una app exclusiva para veterinarios.
-// Lista de caballos con detalles y alertas emergentes.
+// Updated code for a veterinarian-exclusive app.
+// List of horses with details and pop-up alerts.
 
 package com.example.horsesapp;
 
@@ -27,14 +27,18 @@ import java.util.Locale;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
+    public static double DEFAULT_VAL_DOUBLE = -200.0;
+    public static final String ACTION_MY_BROADCAST = "com.example.horsesapp.ACTION_MY_BROADCAST";
 
     public static Map<String, HorseData> horseDataMap = new HashMap<>();
 
     public static class HorseData {
-        public double temperature = -1; // Temperatura predeterminada
-        public double oximetry = -1;    // Oxímetro predeterminado
-        public int heartRate = -1;      // Frecuencia cardíaca predeterminada
-        public String lastUpdated = "Sin actualizar"; // Hora de última actualización
+        public double temperature = DEFAULT_VAL_DOUBLE; // Default temperature
+        public int oximetry = -1;    // Default oximetry
+        public int heartRate = -1;      // Default heart rate
+        public String lastUpdated = "Not updated"; // Last update time
+        public double x = DEFAULT_VAL_DOUBLE, y = DEFAULT_VAL_DOUBLE, z = DEFAULT_VAL_DOUBLE;
+        public double latitude = DEFAULT_VAL_DOUBLE, longitude = DEFAULT_VAL_DOUBLE;
     }
 
     private final String[] horses = {
@@ -67,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         createMQTTclient();
         connectToBroker();
 
-        // Inicializar la lista de caballos
+        // Initialize the horse list
         ListView horseListView = findViewById(R.id.horse_list_view);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
@@ -76,12 +80,12 @@ public class MainActivity extends AppCompatActivity {
         );
         horseListView.setAdapter(adapter);
 
-        // Configurar clics en la lista
+        // Set click events for the list
         horseListView.setOnItemClickListener((parent, view, position, id) -> {
             String selectedHorse = horses[position];
             Intent intent = new Intent(MainActivity.this, HorseDetailActivity.class);
             intent.putExtra("horseName", selectedHorse);
-            intent.putExtra("horseIndex", position); // Pasa el índice del caballo
+            intent.putExtra("horseIndex", position); // Pass the horse index
             startActivity(intent);
         });
     }
@@ -98,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 .identifier("veterinaryApp")
                 .serverHost(serverHost)
                 .serverPort(serverPort)
-                .sslWithDefaultConfig() // Configuración para usar TLS
+                .sslWithDefaultConfig() // Configuration to use TLS
                 .buildAsync();
     }
 
@@ -134,35 +138,60 @@ public class MainActivity extends AppCompatActivity {
                         JSONObject jsonMessage = new JSONObject(receivedMessage);
 
                         String deviceName = jsonMessage.optString("deviceName", "unknown");
-                        double temperature = jsonMessage.optDouble("temperature", -1);
-                        double oximetry = jsonMessage.optDouble("oximetry", -1);
-                        int heartRate = jsonMessage.optInt("HR", -1);
-                        boolean alert = jsonMessage.optBoolean("alert", false); // Detectar si hay una alerta
 
-                        // Obtener hora actual
-                        String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+                        if (deviceName.equals("stable")) {
+                            int a = 1;
+                        } else {
+                            double temperature = jsonMessage.optDouble("temperature", DEFAULT_VAL_DOUBLE);
+                            int oximetry = jsonMessage.optInt("oximetry", -1);
+                            int heartRate = jsonMessage.optInt("HR", -1);
+                            double x = jsonMessage.optDouble("x", DEFAULT_VAL_DOUBLE);
+                            double y = jsonMessage.optDouble("y", DEFAULT_VAL_DOUBLE);
+                            double z = jsonMessage.optDouble("z", DEFAULT_VAL_DOUBLE);
+                            double latitude = jsonMessage.optDouble("lat", DEFAULT_VAL_DOUBLE);
+                            double longitude = jsonMessage.optDouble("long", DEFAULT_VAL_DOUBLE);
+                            boolean alert = jsonMessage.optBoolean("alert", false); // Detect if there's an alert
 
-                        // Actualizar datos en el mapa
-                        MainActivity.HorseData horseData = MainActivity.horseDataMap.getOrDefault(deviceName, new MainActivity.HorseData());
-                        if (temperature != -1) horseData.temperature = temperature;
-                        if (oximetry != -1) horseData.oximetry = oximetry;
-                        if (heartRate != -1) horseData.heartRate = heartRate;
-                        horseData.lastUpdated = currentTime;
+                            // Get current time
+                            String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
 
-                        MainActivity.horseDataMap.put(deviceName, horseData);
+                            // Update data in the map
+                            MainActivity.HorseData horseData = MainActivity.horseDataMap.getOrDefault(deviceName, new MainActivity.HorseData());
+                            if (temperature != DEFAULT_VAL_DOUBLE)
+                                horseData.temperature = temperature;
+                            if (oximetry != -1) horseData.oximetry = oximetry;
+                            if (heartRate != -1) horseData.heartRate = heartRate;
+                            if (x != DEFAULT_VAL_DOUBLE && y != DEFAULT_VAL_DOUBLE && z != DEFAULT_VAL_DOUBLE) {
+                                horseData.x = x;
+                                horseData.y = y;
+                                horseData.z = z;
+                            }
+                            if (latitude != DEFAULT_VAL_DOUBLE && longitude != DEFAULT_VAL_DOUBLE) {
+                                horseData.latitude = latitude;
+                                horseData.longitude = longitude;
+                            }
+                            horseData.lastUpdated = currentTime;
 
-                        // Enviar difusión
-                        Intent intent = new Intent("UPDATE_HORSE_DETAILS");
-                        intent.putExtra("horseName", deviceName);
-                        intent.putExtra("temperature", temperature);
-                        intent.putExtra("oximetry", oximetry);
-                        intent.putExtra("heartRate", heartRate);
-                        intent.putExtra("lastUpdated", currentTime);
-                        sendBroadcast(intent);
+                            MainActivity.horseDataMap.put(deviceName, horseData);
 
-                        // Mostrar alerta si alert=true
-                        if (alert) {
-                            runOnUiThread(() -> showAlert(deviceName, temperature, oximetry, heartRate));
+                            // Send broadcast
+                            Intent intent = new Intent(ACTION_MY_BROADCAST);
+                            intent.putExtra("horseName", deviceName);
+                            intent.putExtra("temperature", temperature);
+                            intent.putExtra("oximetry", oximetry);
+                            intent.putExtra("heartRate", heartRate);
+                            intent.putExtra("lastUpdated", currentTime);
+                            intent.putExtra("x", x);
+                            intent.putExtra("y", y);
+                            intent.putExtra("z", z);
+                            intent.putExtra("lat", latitude);
+                            intent.putExtra("long", longitude);
+                            sendBroadcast(intent);
+
+                            // Show alert if alert=true
+                            if (alert) {
+                                runOnUiThread(() -> showAlert(deviceName, temperature, oximetry, heartRate));
+                            }
                         }
 
                     } catch (JSONException e) {
@@ -174,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAlert(String deviceName, double temperature, double oximetry, int heartRate) {
         String alertMessage = String.format(
-                "¡Alerta detectada para %s!\n\nTemperatura: %.1f °C\nOxímetro: %.1f%%\nFrecuencia cardíaca: %d bpm",
+                "Alert detected for %s!\n\nTemperature: %.1f °C\nOximetry: %.1f%%\nHeart rate: %d bpm",
                 deviceName,
                 temperature,
                 oximetry,
@@ -182,43 +211,43 @@ public class MainActivity extends AppCompatActivity {
         );
 
         new AlertDialog.Builder(this)
-                .setTitle("ALERTA CRÍTICA")
+                .setTitle("CRITICAL ALERT")
                 .setMessage(alertMessage)
                 .setCancelable(false)
-                .setPositiveButton("Voy en camino", (dialog, which) -> {
-                    Toast.makeText(this, "Marcado como en camino.", Toast.LENGTH_SHORT).show();
+                .setPositiveButton("On my way", (dialog, which) -> {
+                    Toast.makeText(this, "Marked as on the way.", Toast.LENGTH_SHORT).show();
 
                     try {
-                        // Crear el payload como un JSONObject
+                        // Create the payload as a JSONObject
                         JSONObject payloadJson = new JSONObject();
                         payloadJson.put("speakerDeviceName", "");
-                        payloadJson.put("status", true); // Agregar status como true
+                        payloadJson.put("status", true); // Add status as true
 
-                        // Convertir el JSONObject a cadena
+                        // Convert the JSONObject to a string
                         String payload = payloadJson.toString();
 
-                        // Publicar el mensaje al tópico MQTT
+                        // Publish the message to the MQTT topic
                         publishMessage(payload);
 
                     } catch (JSONException e) {
-                        Log.e(TAG, "Error al construir el JSON del payload: " + e.getMessage());
+                        Log.e(TAG, "Error building the payload JSON: " + e.getMessage());
                     }
                 })
-                .setNegativeButton("Cerrar", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("Close", (dialog, which) -> dialog.dismiss())
                 .create()
                 .show();
     }
 
     private void publishMessage(String payload) {
         if (payload == null || payload.isEmpty()) {
-            Log.d(TAG, "El mensaje está vacío. No se publicará.");
+            Log.d(TAG, "Message is empty. It will not be published.");
             return;
         }
 
-        Log.d(TAG, "Publicando mensaje: " + payload); // Verificar el contenido del mensaje
+        Log.d(TAG, "Publishing message: " + payload); // Verify the message content
 
         if (client == null || !client.getState().isConnected()) {
-            Log.d(TAG, "El cliente MQTT no está conectado. No se puede publicar.");
+            Log.d(TAG, "MQTT client is not connected. Cannot publish.");
             return;
         }
 
@@ -228,9 +257,9 @@ public class MainActivity extends AppCompatActivity {
                 .send()
                 .whenComplete((publish, throwable) -> {
                     if (throwable != null) {
-                        Log.e(TAG, "Error publicando el mensaje en el tópico " + publishingTopic, throwable);
+                        Log.e(TAG, "Error publishing the message to topic " + publishingTopic, throwable);
                     } else {
-                        Log.d(TAG, "Mensaje publicado en el tópico: " + publishingTopic);
+                        Log.d(TAG, "Message published to topic: " + publishingTopic);
                     }
                 });
     }
