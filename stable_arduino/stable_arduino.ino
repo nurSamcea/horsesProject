@@ -21,7 +21,7 @@
 
 // Credencials Wi-Fi
 const char* ssid = "iPhone de Lara";
-const char* password = "okvtsm2szhb3g";
+const char* password = "";
 
 // Configuration MQTT
 const char* mqtt_server = "srv-iot.diatel.upm.es";
