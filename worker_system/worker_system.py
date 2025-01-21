@@ -31,7 +31,7 @@ buzzer = Buzzer(18)
 button = Button(17)
 
 currentHorse = -1
-horses_array = [("green", time.time())] * NUM_HORSES
+horses_array = [("green", time())] * NUM_HORSES
 
 segments = {
     'A': LED(25),
