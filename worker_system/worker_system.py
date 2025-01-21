@@ -96,7 +96,7 @@ def process_message(message):
         device_name = data.get("deviceName", "Ningun dispositivo")
 
         if (device_name == "stable"):
-            stable_state = data.get("stable_led", False)
+            stable_state = data.get("ledStable", False)
             toggle_stable_led(stable_state)
             logging.info(f"stable_led: {stable_state}")
 
