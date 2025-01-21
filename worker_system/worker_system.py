@@ -110,25 +110,27 @@ def process_message(message):
             indices_filtrados = [i for i, caballo in enumerate(horses_array) if not "green" in caballo[0] and not "black" in caballo[0]]
             if indices_filtrados:
                 indice_reciente = max(indices_filtrados, key=lambda i: horses_array[i][1])
-                print(led_color, indice_reciente)
+                led_color = horses_array[indice_reciente][0]
+                horse_number = indice_reciente
+                logging.info(f"led_color: {led_color}, horse_number: {horse_number}")
+
+                # Actualizar LEDs
+                color = colors.get(led_color, colors["black"])
+                set_rgb_color(*color)
+
+                # Mostrar número del caballo
+                display_number(str(horse_number))
+
+                # Actualizar estado del buzzer
+                if buzzer_state:
+                    buzzer.on()
+                else:
+                    buzzer.off()
+
+                logging.info(
+                    f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
             else:
                 print("No hay caballos con alerts")
-
-            # Actualizar LEDs
-            color = colors.get(led_color, colors["black"])
-            set_rgb_color(*color)
-
-            # Mostrar número del caballo
-            display_number(str(horse_number))
-
-            # Actualizar estado del buzzer
-            if buzzer_state:
-                buzzer.on()
-            else:
-                buzzer.off()
-
-            logging.info(
-                f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
 
     except Exception as e:
         logging.error(f"Error procesando mensaje MQTT: {e}")
@@ -202,7 +204,7 @@ def main():
         for segment in segments.values():
             segment.off()
         buzzer.off()
-        set_rgb_color(*colors["negro"])
+        set_rgb_color(*colors["black"])
         client.loop_stop()
         client.disconnect()
         logging.info("MQTT client desconectado.")
