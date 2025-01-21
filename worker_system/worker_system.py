@@ -99,7 +99,7 @@ def process_message(message):
             stable_state = data.get("ledStable", False)
             toggle_stable_led(stable_state)
             logging.info(f"stable_led: {stable_state}")
-        elif "hosrse" in device_name:
+        elif "horse" in device_name:
             led_color = data.get("led", "black")
             horse_number = data.get("horse", -1)
             buzzer_state = data.get("buzzer", False)
