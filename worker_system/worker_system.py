@@ -98,6 +98,7 @@ def process_message(message):
         if (device_name == "stable"):
             stable_state = data.get("stable_led", False)
             toggle_stable_led(stable_state)
+            logging.info(f"stable_led: {stable_state}")
 
         led_color = data.get("led", "black")
         horse_number = data.get("horse", 0)
