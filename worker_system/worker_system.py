@@ -95,31 +95,40 @@ def process_message(message):
 
         device_name = data.get("deviceName", "Ningun dispositivo")
 
-        if (device_name == "stable"):
+        if device_name == "stable":
             stable_state = data.get("ledStable", False)
             toggle_stable_led(stable_state)
             logging.info(f"stable_led: {stable_state}")
+        elif "hosrse" in device_name:
+            led_color = data.get("led", "black")
+            horse_number = data.get("horse", -1)
+            buzzer_state = data.get("buzzer", False)
 
-        led_color = data.get("led", "black")
-        horse_number = data.get("horse", 0)
-        buzzer_state = data.get("buzzer", False)
+            # Update buffer
+            horses_array[horse_number] = (led_color, time())
 
+            indices_filtrados = [i for i, caballo in enumerate(caballos) if subcadena in caballo[0]]
+            if indices_filtrados:
+                indice_reciente = max(indices_filtrados, key=lambda i: caballos[i][1])
+                print("Índice del caballo más reciente cuyo color contiene '{}':".format(subcadena), indice_reciente)
+            else:
+                print("No hay caballos cuyo color contenga '{}'.".format(subcadena))
 
-        # Actualizar LEDs
-        color = colors.get(led_color, colors["black"])
-        set_rgb_color(*color)
+            # Actualizar LEDs
+            color = colors.get(led_color, colors["black"])
+            set_rgb_color(*color)
 
-        # Mostrar número del caballo
-        display_number(str(horse_number))
+            # Mostrar número del caballo
+            display_number(str(horse_number))
 
-        # Actualizar estado del buzzer
-        if buzzer_state:
-            buzzer.on()
-        else:
-            buzzer.off()
+            # Actualizar estado del buzzer
+            if buzzer_state:
+                buzzer.on()
+            else:
+                buzzer.off()
 
-        logging.info(
-            f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
+            logging.info(
+                f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
 
     except Exception as e:
         logging.error(f"Error procesando mensaje MQTT: {e}")
