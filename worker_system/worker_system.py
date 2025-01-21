@@ -45,6 +45,7 @@ segments = {
 }
 
 numbers = {
+    "-": ['DP'],
     '0': ['A', 'B', 'C', 'D', 'E', 'F'],
     '1': ['B', 'C'],
     '2': ['A', 'B', 'G', 'E', 'D'],
@@ -58,11 +59,12 @@ numbers = {
 }
 
 colors = {
-    "verde": (0, 1, 0),
-    "rojo": (1, 0, 0),
-    "azul": (0, 0, 1),
-    "amarillo": (1, 1, 0),
-    "negro": (0, 0, 0),
+    "green": (0, 1, 0),
+    "red": (1, 0, 0),
+    "blue": (0, 0, 1),
+    "yellow": (1, 1, 0),
+    "black": (0, 0, 0),
+    "orange": (1, 0.5, 0),
     "purple": (1, 0, 1)
 }
 
@@ -97,13 +99,13 @@ def process_message(message):
             stable_state = data.get("stable_led", False)
             toggle_stable_led(stable_state)
 
-        led_color = data.get("led", "negro")
+        led_color = data.get("led", "black")
         horse_number = data.get("horse", 0)
         buzzer_state = data.get("buzzer", False)
 
 
         # Actualizar LEDs
-        color = colors.get(led_color, colors["negro"])
+        color = colors.get(led_color, colors["black"])
         set_rgb_color(*color)
 
         # Mostrar número del caballo
@@ -131,8 +133,8 @@ def handle_button_press():
     if press_duration < 1:
         # Restablecer a 0
         logging.info("Botón presionado brevemente: Restableciendo a estado inicial.")
-        display_number('0')
-        set_rgb_color(*colors["verde"])
+        display_number('-')
+        set_rgb_color(*colors["green"])
         buzzer.off()
     else:
         # Llamar al veterinario
