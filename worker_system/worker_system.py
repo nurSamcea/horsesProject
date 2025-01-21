@@ -40,6 +40,7 @@ segments = {
 }
 
 numbers = {
+    "-": ['DP'],
     '0': ['A', 'B', 'C', 'D', 'E', 'F'],
     '1': ['B', 'C'],
     '2': ['A', 'B', 'G', 'E', 'D'],
@@ -124,7 +125,7 @@ def handle_button_press():
     if press_duration < 1:
         # Restablecer a 0
         logging.info("Botón presionado brevemente: Restableciendo a estado inicial.")
-        display_number('0')
+        display_number('-')
         set_rgb_color(*colors["green"])
         buzzer.off()
     else:
