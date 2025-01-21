@@ -93,7 +93,7 @@ def process_message(message):
         stable_state = data.get("stable_led", False)  # Añadido para el LED del establo
 
         # Actualizar LEDs
-        color = colors.get(led_color, colors["negro"])
+        color = colors.get(led_color, colors["black"])
         set_rgb_color(*color)
 
         # Mostrar número del caballo
