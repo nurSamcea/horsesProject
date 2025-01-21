@@ -118,7 +118,7 @@ def process_message(message):
             buzzer.off()
 
         logging.info(
-            f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}, Stable LED {'ON' if stable_state else 'OFF'}")
+            f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
 
     except Exception as e:
         logging.error(f"Error procesando mensaje MQTT: {e}")
