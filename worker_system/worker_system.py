@@ -53,11 +53,11 @@ numbers = {
 }
 
 colors = {
-    "verde": (0, 1, 0),
-    "rojo": (1, 0, 0),
-    "azul": (0, 0, 1),
-    "amarillo": (1, 1, 0),
-    "negro": (0, 0, 0),
+    "green": (0, 1, 0),
+    "red": (1, 0, 0),
+    "blue": (0, 0, 1),
+    "yellow": (1, 1, 0),
+    "black": (0, 0, 0),
     "purple": (1, 0, 1)
 }
 
@@ -124,7 +124,7 @@ def handle_button_press():
         # Restablecer a 0
         logging.info("Botón presionado brevemente: Restableciendo a estado inicial.")
         display_number('0')
-        set_rgb_color(*colors["verde"])
+        set_rgb_color(*colors["green"])
         buzzer.off()
     else:
         # Llamar al veterinario
