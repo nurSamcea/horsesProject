@@ -107,7 +107,7 @@ def process_message(message):
             # Update buffer
             horses_array[horse_number] = (led_color, time())
 
-            indices_filtrados = [i for i, caballo in enumerate(caballos) if subcadena in caballo[0]]
+            indices_filtrados = [i for i, caballo in enumerate(horses_array) if "green" in caballo[0] or "black" in caballo[0]]
             if indices_filtrados:
                 indice_reciente = max(indices_filtrados, key=lambda i: caballos[i][1])
                 print("Índice del caballo más reciente cuyo color contiene '{}':".format(subcadena), indice_reciente)
