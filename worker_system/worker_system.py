@@ -146,6 +146,8 @@ def handle_button_press():
         # Reset to 0
         logging.info(f"Button briefly pressed: Clearing alert for horse {current_horse}")
         horses_array[current_horse] = ("green", False, time())
+        logging.info(f"Button briefly pressed: Clearing alert for horse {current_horse}, horse_array: {horses_array}")
+        update_actuators()
     else:
         # Call the vet
         alert_message = {"alert": True, "horse": current_horse}
