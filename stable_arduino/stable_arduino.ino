@@ -7,7 +7,7 @@
 #define NUM_HORSES 10
 #define MAX_JSON 200
 
-#define LED_GREEN 16
+#define LED_GREEN 16 // I = GND, S = GREEN LED
 #define LED_YELLOW 19
 
 #define TEMP_MAX 28
@@ -181,6 +181,7 @@ void loop() {
 
     if (temperature > TEMP_MAX || temperature < TEMP_MIN || humidity > HUM_MAX || humidity < HUM_MIN) {
       digitalWrite(LED_GREEN, HIGH);
+      Serial.println("Warning conditions!");
     } else {
       digitalWrite(LED_GREEN, LOW);
     }

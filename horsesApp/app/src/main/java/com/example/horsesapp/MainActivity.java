@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -26,11 +27,15 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import android.content.Context;
+import androidx.core.content.ContextCompat;
+
 public class MainActivity extends AppCompatActivity {
     public static double DEFAULT_VAL_DOUBLE = -200.0;
     public static final String ACTION_MY_BROADCAST = "com.example.horsesapp.ACTION_MY_BROADCAST";
 
     public static Map<String, HorseData> horseDataMap = new HashMap<>();
+    private TextView tempView, humView;
 
     public static class HorseData {
         public double temperature = DEFAULT_VAL_DOUBLE; // Default temperature
@@ -70,6 +75,9 @@ public class MainActivity extends AppCompatActivity {
 
         createMQTTclient();
         connectToBroker();
+
+        tempView = findViewById(R.id.temperature_text);
+        humView = findViewById(R.id.humidity_text);
 
         // Initialize the horse list
         ListView horseListView = findViewById(R.id.horse_list_view);
@@ -140,7 +148,40 @@ public class MainActivity extends AppCompatActivity {
                         String deviceName = jsonMessage.optString("deviceName", "unknown");
 
                         if (deviceName.equals("stable")) {
-                            int a = 1;
+                            double temp = jsonMessage.optDouble("tempStable", DEFAULT_VAL_DOUBLE);
+                            double hum = jsonMessage.optDouble("humStable", DEFAULT_VAL_DOUBLE);
+
+                            if (temp != DEFAULT_VAL_DOUBLE) {
+                                runOnUiThread(() -> {
+                                    tempView.setText(String.format("Temperature: %.2f °C", temp));
+                                    if (temp < 18 || temp > 28) {
+                                        tempView.setTextColor(ContextCompat.getColor(this, R.color.dark_red));
+                                    } else {
+                                        tempView.setTextColor(ContextCompat.getColor(this, R.color.dark_green));
+                                    }
+                                });
+                            }
+                            if (hum != DEFAULT_VAL_DOUBLE) {
+                                runOnUiThread(() -> {
+                                    humView.setText(String.format("Humidity: %.2f %%", hum));
+                                    if (hum < 30 || hum > 70) {
+                                        humView.setTextColor(ContextCompat.getColor(this, R.color.dark_red));
+                                    } else {
+                                        humView.setTextColor(ContextCompat.getColor(this, R.color.dark_green));
+                                    }
+                                });
+                            }
+
+                        } else if (deviceName.equals("WorkerSystem")) {
+                            boolean alert = jsonMessage.optBoolean("alert", false); // Detect if there's an alert
+                            int horse = jsonMessage.optInt("horse", -1);
+
+                            Log.d(TAG, "alert horse: " + horse);
+
+                            // Show alert if alert=true
+                            if (alert && horse > -1) {
+                                runOnUiThread(() -> showAlert(horse));
+                            }
                         } else {
                             double temperature = jsonMessage.optDouble("temperature", DEFAULT_VAL_DOUBLE);
                             int oximetry = jsonMessage.optInt("oximetry", -1);
@@ -150,7 +191,6 @@ public class MainActivity extends AppCompatActivity {
                             double z = jsonMessage.optDouble("z", DEFAULT_VAL_DOUBLE);
                             double latitude = jsonMessage.optDouble("lat", DEFAULT_VAL_DOUBLE);
                             double longitude = jsonMessage.optDouble("long", DEFAULT_VAL_DOUBLE);
-                            boolean alert = jsonMessage.optBoolean("alert", false); // Detect if there's an alert
 
                             // Get current time
                             String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
@@ -187,13 +227,7 @@ public class MainActivity extends AppCompatActivity {
                             intent.putExtra("lat", latitude);
                             intent.putExtra("long", longitude);
                             sendBroadcast(intent);
-
-                            // Show alert if alert=true
-                            if (alert) {
-                                runOnUiThread(() -> showAlert(deviceName, temperature, oximetry, heartRate));
-                            }
                         }
-
                     } catch (JSONException e) {
                         Log.e(TAG, "Error parsing JSON: " + e.getMessage());
                     }
@@ -201,14 +235,8 @@ public class MainActivity extends AppCompatActivity {
                 .send();
     }
 
-    private void showAlert(String deviceName, double temperature, double oximetry, int heartRate) {
-        String alertMessage = String.format(
-                "Alert detected for %s!\n\nTemperature: %.1f °C\nOximetry: %.1f%%\nHeart rate: %d bpm",
-                deviceName,
-                temperature,
-                oximetry,
-                heartRate
-        );
+    private void showAlert(int horse) {
+        String alertMessage = String.format("Alert detected for horse %d\n", horse);
 
         new AlertDialog.Builder(this)
                 .setTitle("CRITICAL ALERT")
@@ -220,14 +248,15 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         // Create the payload as a JSONObject
                         JSONObject payloadJson = new JSONObject();
-                        payloadJson.put("speakerDeviceName", "");
-                        payloadJson.put("status", true); // Add status as true
+                        //payloadJson.put("speakerDeviceName", "");
+                        payloadJson.put("ack", true); // Add status as true
 
                         // Convert the JSONObject to a string
                         String payload = payloadJson.toString();
 
                         // Publish the message to the MQTT topic
                         publishMessage(payload);
+                        Log.d(TAG, "On the way publish");
 
                     } catch (JSONException e) {
                         Log.e(TAG, "Error building the payload JSON: " + e.getMessage());

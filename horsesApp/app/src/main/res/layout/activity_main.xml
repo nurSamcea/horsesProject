@@ -27,7 +27,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Temperature: 20 °C"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textColor="@color/dark_green"
             android:gravity="center" />
 
@@ -37,7 +37,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:text="Humidity: 70 %"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textColor="@color/dark_green"
             android:gravity="center" />
     </LinearLayout>
