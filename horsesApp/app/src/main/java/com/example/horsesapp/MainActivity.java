@@ -176,6 +176,8 @@ public class MainActivity extends AppCompatActivity {
                             boolean alert = jsonMessage.optBoolean("alert", false); // Detect if there's an alert
                             int horse = jsonMessage.optInt("horse", -1);
 
+                            Log.d(TAG, "alert horse: " + horse);
+
                             // Show alert if alert=true
                             if (alert && horse > -1) {
                                 runOnUiThread(() -> showAlert(horse));
@@ -234,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showAlert(int horse) {
-        String alertMessage = String.format("Alert detected for horse %d!\n", horse);
+        String alertMessage = String.format("Alert detected for horse %d\n", horse);
 
         new AlertDialog.Builder(this)
                 .setTitle("CRITICAL ALERT")
@@ -246,14 +248,15 @@ public class MainActivity extends AppCompatActivity {
                     try {
                         // Create the payload as a JSONObject
                         JSONObject payloadJson = new JSONObject();
-                        payloadJson.put("speakerDeviceName", "");
-                        payloadJson.put("status", true); // Add status as true
+                        //payloadJson.put("speakerDeviceName", "");
+                        payloadJson.put("ack", true); // Add status as true
 
                         // Convert the JSONObject to a string
                         String payload = payloadJson.toString();
 
                         // Publish the message to the MQTT topic
                         publishMessage(payload);
+                        Log.d(TAG, "On the way publish");
 
                     } catch (JSONException e) {
                         Log.e(TAG, "Error building the payload JSON: " + e.getMessage());
