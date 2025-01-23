@@ -30,7 +30,7 @@ blue_pwm = PWMLED(16)
 buzzer = Buzzer(18)
 button = Button(17)
 
-currentHorse = -1
+current_horse = -1
 horses_array = [("green", time())] * NUM_HORSES
 
 segments = {
@@ -112,6 +112,7 @@ def process_message(message):
                 indice_reciente = max(indices_filtrados, key=lambda i: horses_array[i][1])
                 led_color = horses_array[indice_reciente][0]
                 horse_number = indice_reciente
+                current_horse = indice_reciente
                 logging.info(f"led_color: {led_color}, horse_number: {horse_number}")
 
                 # Actualizar LEDs
@@ -130,6 +131,10 @@ def process_message(message):
                 logging.info(
                     f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
             else:
+                color = colors.get("green", colors["black"])
+                set_rgb_color(*color)
+                display_number('-')
+                buzzer.off()
                 print("No hay caballos con alerts")
 
     except Exception as e:
@@ -145,12 +150,14 @@ def handle_button_press():
     if press_duration < 1:
         # Restablecer a 0
         logging.info("Botón presionado brevemente: Restableciendo a estado inicial.")
+
         display_number('-')
         set_rgb_color(*colors["green"])
         buzzer.off()
+        # retocar apara que elimine la alarma actual y haga otra vez un update de los cballos, tal vez meterlo en funcion
     else:
         # Llamar al veterinario
-        alert_message = {"alert": True, "horse": currentHorse}
+        alert_message = {"alert": True, "horse": current_horse}
         client.publish(topic_to_publish, json.dumps(alert_message), qos=1)
         logging.info("Mensaje publicado: Llamar al veterinario.")
 
