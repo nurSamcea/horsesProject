@@ -141,6 +141,8 @@ def process_message(message):
         logging.error(f"Error processing MQTT message: {e}")
 
 def handle_button_press():
+    global current_horse
+
     start_time = time()
     while button.is_pressed:
         sleep(0.1)
