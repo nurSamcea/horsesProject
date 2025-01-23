@@ -113,7 +113,7 @@ public class HorseDetailActivity extends AppCompatActivity {
         try {
             JSONObject payloadJson = new JSONObject();
             payloadJson.put("speakerDeviceName", horseName);
-            payloadJson.put("status", false);
+            payloadJson.put("status", true);
 
             String payload = payloadJson.toString();
             publishMessage(payload); // Call the method to publish the message
