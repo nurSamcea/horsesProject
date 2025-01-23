@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -26,11 +27,15 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import android.content.Context;
+import androidx.core.content.ContextCompat;
+
 public class MainActivity extends AppCompatActivity {
     public static double DEFAULT_VAL_DOUBLE = -200.0;
     public static final String ACTION_MY_BROADCAST = "com.example.horsesapp.ACTION_MY_BROADCAST";
 
     public static Map<String, HorseData> horseDataMap = new HashMap<>();
+    private TextView tempView, humView;
 
     public static class HorseData {
         public double temperature = DEFAULT_VAL_DOUBLE; // Default temperature
@@ -70,6 +75,9 @@ public class MainActivity extends AppCompatActivity {
 
         createMQTTclient();
         connectToBroker();
+
+        tempView = findViewById(R.id.temperature_text);
+        humView = findViewById(R.id.humidity_text);
 
         // Initialize the horse list
         ListView horseListView = findViewById(R.id.horse_list_view);
@@ -140,7 +148,30 @@ public class MainActivity extends AppCompatActivity {
                         String deviceName = jsonMessage.optString("deviceName", "unknown");
 
                         if (deviceName.equals("stable")) {
-                            int a = 1;
+                            double temp = jsonMessage.optDouble("tempStable", DEFAULT_VAL_DOUBLE);
+                            double hum = jsonMessage.optDouble("humStable", DEFAULT_VAL_DOUBLE);
+
+                            if (temp != DEFAULT_VAL_DOUBLE) {
+                                runOnUiThread(() -> {
+                                    tempView.setText(String.format("Temperature: %.2f °C", temp));
+                                    if (temp < 18 || temp > 28) {
+                                        tempView.setTextColor(ContextCompat.getColor(this, R.color.dark_red));
+                                    } else {
+                                        tempView.setTextColor(ContextCompat.getColor(this, R.color.dark_green));
+                                    }
+                                });
+                            }
+                            if (hum != DEFAULT_VAL_DOUBLE) {
+                                runOnUiThread(() -> {
+                                    humView.setText(String.format("Humidity: %.2f %%", hum));
+                                    if (hum < 30 || hum > 70) {
+                                        humView.setTextColor(ContextCompat.getColor(this, R.color.dark_red));
+                                    } else {
+                                        humView.setTextColor(ContextCompat.getColor(this, R.color.dark_green));
+                                    }
+                                });
+                            }
+
                         } else {
                             double temperature = jsonMessage.optDouble("temperature", DEFAULT_VAL_DOUBLE);
                             int oximetry = jsonMessage.optInt("oximetry", -1);

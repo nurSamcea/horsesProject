@@ -6,8 +6,11 @@ import paho.mqtt.client as mqtt
 from gpiozero import LED, PWMLED, Button, Buzzer
 
 NUM_HORSES = 10
+COLOR = 0
+BUZZER = 1
+TIME = 2
 
-# Configuración de logging
+# Logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -17,12 +20,9 @@ logging.basicConfig(
     ]
 )
 
-# stable led ->
-# Patilla larga (ánodo): conectada a la resistencia y la resistencia al pin GPIO22.
-# Patilla corta (cátodo): conectada a tierra (GND).
 stable_led = LED(22)
 
-# Configuración de LEDs y sensores
+# LED and sensor configuration
 red_pwm = PWMLED(21)
 green_pwm = PWMLED(20)
 blue_pwm = PWMLED(16)
@@ -30,8 +30,8 @@ blue_pwm = PWMLED(16)
 buzzer = Buzzer(18)
 button = Button(17)
 
-currentHorse = -1
-horses_array = [("green", time())] * NUM_HORSES
+current_horse = -1
+horses_array = [("black", False, time())] * NUM_HORSES
 
 segments = {
     'A': LED(25),
@@ -68,19 +68,16 @@ colors = {
     "purple": (1, 0, 1)
 }
 
-
 def toggle_stable_led(state):
     if state:
         stable_led.on()
     else:
         stable_led.off()
 
-
 def set_rgb_color(r, g, b):
     red_pwm.value = r
     green_pwm.value = g
     blue_pwm.value = b
-
 
 def display_number(num):
     for segment in segments.values():
@@ -88,53 +85,56 @@ def display_number(num):
     for segment in numbers.get(num, []):
         segments[segment].on()
 
+def update_actuators():
+    filtered_horses = [i for i, horse in enumerate(horses_array) if not "green" in horse[COLOR] and not "black" in horse[COLOR]]
+    if filtered_horses:
+        current_horse = max(filtered_horses, key=lambda i: horses_array[i][TIME])
+        led_color = horses_array[current_horse][COLOR]
+        buzzer_state = horses_array[current_horse][BUZZER]
+        logging.info(f"led_color: {led_color}, horse_number: {current_horse}")
+
+        # Update LEDs
+        color = colors.get(led_color, colors["black"])
+        set_rgb_color(*color)
+
+        # Display horse number
+        display_number(str(current_horse))
+
+        # Update buzzer state
+        if buzzer_state:
+            buzzer.on()
+        else:
+            buzzer.off()
+
+        logging.info(
+            f"Updated: Horse {current_horse}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
+    else:
+        logging.info("No horses with alerts")
+        display_number('-')
+        set_rgb_color(*colors["green"])
+        buzzer.off()
 
 def process_message(message):
     try:
         data = json.loads(message)
 
-        device_name = data.get("deviceName", "Ningun dispositivo")
+        device_name = data.get("deviceName", "No device")
 
         if device_name == "stable":
             stable_state = data.get("ledStable", False)
             toggle_stable_led(stable_state)
             logging.info(f"stable_led: {stable_state}")
         elif "horse" in device_name:
-            led_color = data.get("led", "black")
             horse_number = data.get("horse", -1)
-            buzzer_state = data.get("buzzer", False)
+            if horse_number < 0:
+                return
 
             # Update buffer
-            horses_array[horse_number] = (led_color, time())
-
-            indices_filtrados = [i for i, caballo in enumerate(horses_array) if not "green" in caballo[0] and not "black" in caballo[0]]
-            if indices_filtrados:
-                indice_reciente = max(indices_filtrados, key=lambda i: horses_array[i][1])
-                led_color = horses_array[indice_reciente][0]
-                horse_number = indice_reciente
-                logging.info(f"led_color: {led_color}, horse_number: {horse_number}")
-
-                # Actualizar LEDs
-                color = colors.get(led_color, colors["black"])
-                set_rgb_color(*color)
-
-                # Mostrar número del caballo
-                display_number(str(horse_number))
-
-                # Actualizar estado del buzzer
-                if buzzer_state:
-                    buzzer.on()
-                else:
-                    buzzer.off()
-
-                logging.info(
-                    f"Actualizado: Caballo {horse_number} // deviceName = {device_name}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
-            else:
-                print("No hay caballos con alerts")
+            horses_array[horse_number] = (data.get("led", "black"), data.get("buzzer", False), time())
+            update_actuators()
 
     except Exception as e:
-        logging.error(f"Error procesando mensaje MQTT: {e}")
-
+        logging.error(f"Error processing MQTT message: {e}")
 
 def handle_button_press():
     start_time = time()
@@ -143,19 +143,16 @@ def handle_button_press():
     press_duration = time() - start_time
 
     if press_duration < 1:
-        # Restablecer a 0
-        logging.info("Botón presionado brevemente: Restableciendo a estado inicial.")
-        display_number('-')
-        set_rgb_color(*colors["green"])
-        buzzer.off()
+        # Reset to 0
+        logging.info(f"Button briefly pressed: Clearing alert for horse {current_horse}")
+        horses_array[current_horse] = ("green", False, time())
     else:
-        # Llamar al veterinario
-        alert_message = {"alert": True, "horse": currentHorse}
+        # Call the vet
+        alert_message = {"alert": True, "horse": current_horse}
         client.publish(topic_to_publish, json.dumps(alert_message), qos=1)
-        logging.info("Mensaje publicado: Llamar al veterinario.")
+        logging.info("Message published: Call the vet.")
 
-
-# Configuración de MQTT
+# MQTT configuration
 broker = "srv-iot.diatel.upm.es"
 port = 8883
 topic_to_subscribe = "v1/devices/me/attributes"
@@ -166,49 +163,49 @@ client = mqtt.Client()
 client.username_pw_set(access_token)
 client.tls_set()
 
-
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        logging.info("Conexión al broker MQTT exitosa.")
+        logging.info("Successfully connected to MQTT broker.")
         client.subscribe(topic_to_subscribe, qos=1)
     else:
-        logging.error(f"Error al conectar con el broker, código: {rc}")
-
+        logging.error(f"Error connecting to broker, code: {rc}")
 
 def on_message(client, userdata, msg):
-    logging.info(f"Mensaje recibido: {msg.payload.decode()}")
+    logging.info(f"Message received: {msg.payload.decode()}")
     process_message(msg.payload.decode())
-
 
 client.on_connect = on_connect
 client.on_message = on_message
 
 try:
-    logging.info(f"Conectando al broker MQTT {broker}:{port}...")
+    logging.info(f"Connecting to MQTT broker {broker}:{port}...")
     client.connect(broker, port, 60)
     client.loop_start()
 except Exception as e:
-    logging.error(f"Error al conectar con el broker MQTT: {e}")
-
+    logging.error(f"Error connecting to MQTT broker: {e}")
 
 def main():
-    logging.info("Sistema de monitoreo iniciado.")
+    logging.info("Monitoring system started.")
     button.when_pressed = handle_button_press
+
+    display_number('-')
+    set_rgb_color(*colors["black"])
+    buzzer.off()
+
     try:
         while True:
             sleep(1)
     except KeyboardInterrupt:
-        logging.warning("Programa interrumpido manualmente.")
+        logging.warning("Program manually interrupted.")
     finally:
-        logging.info("Apagando sistema.")
+        logging.info("Shutting down system.")
         for segment in segments.values():
             segment.off()
         buzzer.off()
         set_rgb_color(*colors["black"])
         client.loop_stop()
         client.disconnect()
-        logging.info("MQTT client desconectado.")
-
+        logging.info("MQTT client disconnected.")
 
 if __name__ == "__main__":
     main()
