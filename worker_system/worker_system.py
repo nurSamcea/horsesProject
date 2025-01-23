@@ -86,21 +86,21 @@ def display_number(num):
         segments[segment].on()
 
 def update_actuators():
-    current_horse = -1
+    actual_horse = -1
     filtered_horses = [i for i, horse in enumerate(horses_array) if not "green" in horse[COLOR] and not "black" in horse[COLOR]]
     
     if filtered_horses:
-        current_horse = max(filtered_horses, key=lambda i: horses_array[i][TIME])
-        led_color = horses_array[current_horse][COLOR]
-        buzzer_state = horses_array[current_horse][BUZZER]
-        logging.info(f"led_color: {led_color}, horse_number: {current_horse}")
+        actual_horse = max(filtered_horses, key=lambda i: horses_array[i][TIME])
+        led_color = horses_array[actual_horse][COLOR]
+        buzzer_state = horses_array[actual_horse][BUZZER]
+        logging.info(f"led_color: {led_color}, horse_number: {actual_horse}")
 
         # Update LEDs
         color = colors.get(led_color, colors["black"])
         set_rgb_color(*color)
 
         # Display horse number
-        display_number(str(current_horse))
+        display_number(str(actual_horse))
 
         # Update buzzer state
         if buzzer_state:
@@ -109,14 +109,14 @@ def update_actuators():
             buzzer.off()
 
         logging.info(
-            f"Updated: Horse {current_horse}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
+            f"Updated: Horse {actual_horse}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
     else:
         logging.info("No horses with alerts")
         display_number('-')
         set_rgb_color(*colors["green"])
         buzzer.off()
 
-    return current_horse
+    return actual_horse
 
 def process_message(message):
     try:
