@@ -172,6 +172,14 @@ public class MainActivity extends AppCompatActivity {
                                 });
                             }
 
+                        } else if (deviceName.equals("WorkerSystem")) {
+                            boolean alert = jsonMessage.optBoolean("alert", false); // Detect if there's an alert
+                            int horse = jsonMessage.optInt("horse", -1);
+
+                            // Show alert if alert=true
+                            if (alert && horse > -1) {
+                                runOnUiThread(() -> showAlert(horse));
+                            }
                         } else {
                             double temperature = jsonMessage.optDouble("temperature", DEFAULT_VAL_DOUBLE);
                             int oximetry = jsonMessage.optInt("oximetry", -1);
@@ -181,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
                             double z = jsonMessage.optDouble("z", DEFAULT_VAL_DOUBLE);
                             double latitude = jsonMessage.optDouble("lat", DEFAULT_VAL_DOUBLE);
                             double longitude = jsonMessage.optDouble("long", DEFAULT_VAL_DOUBLE);
-                            boolean alert = jsonMessage.optBoolean("alert", false); // Detect if there's an alert
 
                             // Get current time
                             String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
@@ -218,13 +225,7 @@ public class MainActivity extends AppCompatActivity {
                             intent.putExtra("lat", latitude);
                             intent.putExtra("long", longitude);
                             sendBroadcast(intent);
-
-                            // Show alert if alert=true
-                            if (alert) {
-                                runOnUiThread(() -> showAlert(deviceName, temperature, oximetry, heartRate));
-                            }
                         }
-
                     } catch (JSONException e) {
                         Log.e(TAG, "Error parsing JSON: " + e.getMessage());
                     }
@@ -232,14 +233,8 @@ public class MainActivity extends AppCompatActivity {
                 .send();
     }
 
-    private void showAlert(String deviceName, double temperature, double oximetry, int heartRate) {
-        String alertMessage = String.format(
-                "Alert detected for %s!\n\nTemperature: %.1f °C\nOximetry: %.1f%%\nHeart rate: %d bpm",
-                deviceName,
-                temperature,
-                oximetry,
-                heartRate
-        );
+    private void showAlert(int horse) {
+        String alertMessage = String.format("Alert detected for horse %d!\n", horse);
 
         new AlertDialog.Builder(this)
                 .setTitle("CRITICAL ALERT")
