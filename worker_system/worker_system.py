@@ -119,6 +119,8 @@ def update_actuators():
     return actual_horse
 
 def process_message(message):
+    global current_horse
+
     try:
         data = json.loads(message)
 
@@ -135,7 +137,7 @@ def process_message(message):
 
             # Update buffer
             horses_array[horse_number] = (data.get("led", "black"), data.get("buzzer", False), time())
-            update_actuators()
+            current_horse = update_actuators()
 
     except Exception as e:
         logging.error(f"Error processing MQTT message: {e}")
