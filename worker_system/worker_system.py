@@ -158,7 +158,7 @@ def handle_button_press():
         # Call the vet
         alert_message = {"alert": True, "horse": current_horse}
         client.publish(topic_to_publish, json.dumps(alert_message), qos=1)
-        logging.info("Message published: horse {current_horse}")
+        logging.info(f"Message published: horse {current_horse}")
 
 # MQTT configuration
 broker = "srv-iot.diatel.upm.es"
