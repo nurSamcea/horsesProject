@@ -86,7 +86,9 @@ def display_number(num):
         segments[segment].on()
 
 def update_actuators():
+    current_horse = -1
     filtered_horses = [i for i, horse in enumerate(horses_array) if not "green" in horse[COLOR] and not "black" in horse[COLOR]]
+    
     if filtered_horses:
         current_horse = max(filtered_horses, key=lambda i: horses_array[i][TIME])
         led_color = horses_array[current_horse][COLOR]
@@ -113,6 +115,8 @@ def update_actuators():
         display_number('-')
         set_rgb_color(*colors["green"])
         buzzer.off()
+
+    return current_horse
 
 def process_message(message):
     try:
@@ -147,7 +151,7 @@ def handle_button_press():
         logging.info(f"Button briefly pressed: Clearing alert for horse {current_horse}")
         horses_array[current_horse] = ("green", False, time())
         logging.info(f"Button briefly pressed: Clearing alert for horse {current_horse}, horse_array: {horses_array}")
-        update_actuators()
+        current_horse = update_actuators()
     else:
         # Call the vet
         alert_message = {"alert": True, "horse": current_horse}
