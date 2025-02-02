@@ -24,6 +24,7 @@ public class HorseDetailActivity extends AppCompatActivity {
     private int horseIndex;
     private TextView temperatureView, oximetryView, hrView, horseNameView, lastUpdatedView;
     private TextView accelerationYView, accelerationXView, accelerationZView, latitudeView, longitudeView;
+    private TextView msg_metadataView, msg_dataprocessorView;
     private Button activateSpeakerButton; // Button to activate the speaker
 
     String TAG1 = "FRONT MESSAGE mqtt";
@@ -46,6 +47,8 @@ public class HorseDetailActivity extends AppCompatActivity {
         longitudeView = findViewById(R.id.location_longitude);
         lastUpdatedView = findViewById(R.id.last_updated);
         activateSpeakerButton = findViewById(R.id.activate_speaker_button);
+        msg_metadataView = findViewById(R.id.alert_metadata);
+        msg_dataprocessorView = findViewById(R.id.alert_msg_dataprocessor);
 
         // Retrieve initial data
         String horseName = getIntent().getStringExtra("horseName");
@@ -75,6 +78,11 @@ public class HorseDetailActivity extends AppCompatActivity {
             if (horseData.latitude != MainActivity.DEFAULT_VAL_DOUBLE && horseData.longitude != MainActivity.DEFAULT_VAL_DOUBLE) {
                 latitudeView.setText(String.format("Latitude: %.6f", horseData.latitude));
                 longitudeView.setText(String.format("Longitude: %.6f", horseData.longitude));
+            }
+            if(horseData.msg_dataprocessor != null) {
+                msg_dataprocessorView.setText(String.format("Msg: %s", horseData.msg_dataprocessor));
+                if (horseData.msg_metadata != null)
+                    msg_metadataView.setText(String.format("Last msg from DATAPROCESSOR at: %s", horseData.msg_metadata));
             }
         }
 
@@ -130,7 +138,7 @@ public class HorseDetailActivity extends AppCompatActivity {
 
         myReceiver = new MyReceiver(temperatureView, oximetryView, hrView, horseNameView,
                 lastUpdatedView, accelerationXView, accelerationYView, accelerationZView,
-                latitudeView, longitudeView);
+                latitudeView, longitudeView, msg_metadataView, msg_dataprocessorView);
         IntentFilter filter = new IntentFilter(MainActivity.ACTION_MY_BROADCAST);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             registerReceiver(myReceiver, filter, Context.RECEIVER_EXPORTED);
