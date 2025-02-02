@@ -170,7 +170,7 @@ def process_and_publish_data(client, device_name):
         logging.debug("Alerta de ataque al corazón activada")
 
     # Si no es un ataque al corazón, revisa las demás alertas
-    elif (oximetry_low_bool and not temp_high_bool and not heartrate_high_bool):
+    elif (oximetry_low_bool and temp_high_bool and not heartrate_high_bool):
         alert_message = "WARNING: Old horse is suffocating"
         logging.debug("Alerta de sufrimiento por falta de oxígeno activada")
     
