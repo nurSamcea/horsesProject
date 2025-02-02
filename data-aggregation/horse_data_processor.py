@@ -62,7 +62,6 @@ collection_alerts = db["horse_alerts"]  # Alerts
 
 # Function to save data in MongoDB-------------------------------------------
 def save_to_mongo(collection, data):
-    """Función para guardar datos en MongoDB"""
     collection.insert_one(data)
     logging.info(f"Data saved to MongoDB: {data}")
 #----------------------------------------------------------------------------
@@ -123,23 +122,18 @@ def evaluate_little_gpslocation(horse_data, device_name):
    
     if len(last_location_dict[device_name]) > 0:
         last_lat, last_lon = last_location_dict[device_name][-1]
-        
         # función Haversine solo si las coordenadas son diferentes
         if latitude != last_lat or longitude != last_lon:
             distance = calculate_distance(last_lat, last_lon, latitude, longitude)
-            # Si la distancia es mayor que el umbral (2 metros), entonces hay movimiento
             if distance > THRESHOLD_METERS:
                 little_movement_alert = True
         else:
-            # Si las coordenadas son exactamente iguales, activar la alerta si esto se repite
             same_location_count = last_location_dict[device_name].count((latitude, longitude))
             if same_location_count >= 3:  
                 little_movement_alert = True  
     else:
-        # Si no hay ubicaciones anteriores, marcamos el movimiento como estacionario por ahora
         little_movement_alert = True
-    
-    # Agregar la coordenada actual al historial
+
     if len(last_location_dict[device_name]) >= TEST_DATA:
         last_location_dict[device_name].pop(0)  # Eliminar la más antigua si la lista está llena
     last_location_dict[device_name].append((latitude, longitude))
@@ -152,49 +146,34 @@ def process_and_publish_data(client, device_name):
     logging.info(f"Processing parameters of {device_name} for the last 5 min")
     horse_data = horse_data_dict[device_name]
 
-    # Evaluamos todas las condiciones
-    temp_high_bool = evaluate_high_temp(horse_data)  # ¿Temperatura alta?
-    heartrate_high_bool = evaluate_high_hr(horse_data)  # ¿Frecuencia cardíaca alta?
-    oximetry_low_bool = evaluate_low_oxim(horse_data)  # ¿Oxigenación baja?
-    horse_on_gnd_bool = evaluate_acc_on_ground(horse_data)  # ¿El caballo está en el suelo?
-    little_movement_bool = evaluate_little_gpslocation(horse_data, device_name)  # ¿Movimientos muy pequeños?
+    # Chack parameters in TEST (only 5 measurements) 
+    temp_high_bool = evaluate_high_temp(horse_data)
+    heartrate_high_bool = evaluate_high_hr(horse_data)
+    oximetry_low_bool = evaluate_low_oxim(horse_data)
+    horse_on_gnd_bool = evaluate_acc_on_ground(horse_data) 
+    little_movement_bool = evaluate_little_gpslocation(horse_data, device_name)
+    
+    alert_message = None
 
-    # Log de depuración
-    logging.debug(f"Evaluando condiciones: Temp: {temp_high_bool}, HR: {heartrate_high_bool}, O2: {oximetry_low_bool}, Ground: {horse_on_gnd_bool}, Movement: {little_movement_bool}")
-
-    alert_message = None  # Inicializamos la variable de la alerta como None
-
-    # Primero, verifica el ataque al corazón. Esto debe tener prioridad
+    # conditions with priority. DEAD is at the end because you cannot do anything for the horse
     if (heartrate_high_bool and oximetry_low_bool and horse_on_gnd_bool and little_movement_bool and not temp_high_bool):
         alert_message = "ALERT: Possible heart attack"
-        logging.debug("Alerta de ataque al corazón activada")
 
-    # Si no es un ataque al corazón, revisa las demás alertas
     elif (oximetry_low_bool and temp_high_bool and not heartrate_high_bool):
         alert_message = "WARNING: Old horse is suffocating"
-        logging.debug("Alerta de sufrimiento por falta de oxígeno activada")
-    
-    # Caso de infección, si la temperatura es alta y la oxigenación no está baja
+        
     elif (temp_high_bool and not oximetry_low_bool and horse_on_gnd_bool and little_movement_bool):
         alert_message = "ALERT: Possible infection"
-        logging.debug("Alerta de posible infección activada")
-    
-    # Caso de estrés, si la frecuencia cardíaca es alta y la oxigenación baja
+        
     elif (oximetry_low_bool and heartrate_high_bool and not horse_on_gnd_bool and not little_movement_bool):
         alert_message = "WARNING: Possible stress detection"
-        logging.debug("Alerta de posible estrés activada")
-    
-    # Caso de caballo pariendo, temperatura alta, oxigenación normal, etc.
+
     elif (temp_high_bool and not oximetry_low_bool and heartrate_high_bool and horse_on_gnd_bool and little_movement_bool):
         alert_message = "NEWS: Horse is giving birth"
-        logging.debug("Alerta de caballo pariendo activada")
-    
-    # Caso de caballo muriendo, oxigenación baja, sin ritmo cardíaco alto, etc.
+
     elif (not temp_high_bool and oximetry_low_bool and not heartrate_high_bool and horse_on_gnd_bool and little_movement_bool):
         alert_message = "SAD: Horse is dying"
-        logging.debug("Alerta de caballo muriendo activada")
     
-    # Si hay una alerta, publica el mensaje y guárdalo en la base de datos
     if alert_message:
         payload = {
             "deviceName": device_name,
