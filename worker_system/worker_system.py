@@ -5,10 +5,8 @@ from time import sleep, time
 import paho.mqtt.client as mqtt
 from gpiozero import LED, PWMLED, Button, Buzzer
 
-NUM_HORSES = 10
 COLOR = 0
 BUZZER = 1
-TIME = 2
 
 # Logging configuration
 logging.basicConfig(
@@ -20,187 +18,178 @@ logging.basicConfig(
     ]
 )
 
-stable_led = LED(22)
 
-# LED and sensor configuration
-red_pwm = PWMLED(21)
-green_pwm = PWMLED(20)
-blue_pwm = PWMLED(16)
+class RGBLed:
+    def __init__(self):
+        self.red = PWMLED(21)
+        self.green = PWMLED(20)
+        self.blue = PWMLED(16)
 
-buzzer = Buzzer(18)
-button = Button(17)
+    def set_color(self, r, g, b):
+        self.red.value = r
+        self.green.value = g
+        self.blue.value = b
 
-current_horse = -1
-horses_array = [("black", False, time())] * NUM_HORSES
+    def turn_off(self):
+        self.set_color(0, 0, 0)
 
-segments = {
-    'A': LED(25),
-    'B': LED(12),
-    'C': LED(13),
-    'D': LED(19),
-    'E': LED(26),
-    'F': LED(24),
-    'G': LED(23),
-    'DP': LED(6)
-}
 
-numbers = {
-    "-": ['DP'],
-    '0': ['A', 'B', 'C', 'D', 'E', 'F'],
-    '1': ['B', 'C'],
-    '2': ['A', 'B', 'G', 'E', 'D'],
-    '3': ['A', 'B', 'C', 'D', 'G'],
-    '4': ['B', 'C', 'F', 'G'],
-    '5': ['A', 'C', 'D', 'F', 'G'],
-    '6': ['A', 'C', 'D', 'E', 'F', 'G'],
-    '7': ['A', 'B', 'C'],
-    '8': ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
-    '9': ['A', 'B', 'C', 'D', 'F', 'G']
-}
+class SevenSegmentDisplay:
+    def __init__(self):
+        self.segments = {
+            'A': LED(25),
+            'B': LED(12),
+            'C': LED(13),
+            'D': LED(19),
+            'E': LED(26),
+            'F': LED(24),
+            'G': LED(23),
+            'DP': LED(6)
+        }
+        self.numbers = {
+            "-": ['DP'],
+            '0': ['A', 'B', 'C', 'D', 'E', 'F'],
+            '1': ['B', 'C'],
+            '2': ['A', 'B', 'G', 'E', 'D'],
+            '3': ['A', 'B', 'C', 'D', 'G'],
+            '4': ['B', 'C', 'F', 'G'],
+            '5': ['A', 'C', 'D', 'F', 'G'],
+            '6': ['A', 'C', 'D', 'E', 'F', 'G'],
+            '7': ['A', 'B', 'C'],
+            '8': ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+            '9': ['A', 'B', 'C', 'D', 'F', 'G']
+        }
 
-colors = {
-    "green": (0, 1, 0),
-    "red": (1, 0, 0),
-    "blue": (0, 0, 1),
-    "yellow": (1, 1, 0),
-    "black": (0, 0, 0),
-    "orange": (1, 0.5, 0),
-    "purple": (1, 0, 1)
-}
+    def off(self):
+        for segment in self.segments.values():
+            segment.off()
 
-def toggle_stable_led(state):
-    if state:
-        stable_led.on()
-    else:
-        stable_led.off()
+    def display(self, num):
+        for segment in self.segments.values():
+            segment.off()
+        for segment in self.numbers.get(str(num), []):
+            self.segments[segment].on()
 
-def set_rgb_color(r, g, b):
-    red_pwm.value = r
-    green_pwm.value = g
-    blue_pwm.value = b
 
-def display_number(num):
-    for segment in segments.values():
-        segment.off()
-    for segment in numbers.get(num, []):
-        segments[segment].on()
+class HealthMonitor:
+    def __init__(self):
+        self.num_horses = 10
+        self.horses = [("black", False, time())] * self.num_horses
+        self.current_horse = -1
+        self.stable_led = LED(22)
+        self.rgb_led = RGBLed()
+        self.buzzer = Buzzer(18)
+        self.display = SevenSegmentDisplay()
+        self.button = Button(17)
+        self.button.when_pressed = self.handle_button_press
+        self.TIME = 2
+        self.COLOR = 0
+        self.BUZZER = 1
 
-def update_actuators():
-    actual_horse = -1
-    filtered_horses = [i for i, horse in enumerate(horses_array) if not "green" in horse[COLOR] and not "black" in horse[COLOR]]
-    
-    if filtered_horses:
-        actual_horse = max(filtered_horses, key=lambda i: horses_array[i][TIME])
-        led_color = horses_array[actual_horse][COLOR]
-        buzzer_state = horses_array[actual_horse][BUZZER]
-        logging.info(f"led_color: {led_color}, horse_number: {actual_horse}")
-
-        # Update LEDs
-        color = colors.get(led_color, colors["black"])
-        set_rgb_color(*color)
-
-        # Display horse number
-        display_number(str(actual_horse))
-
-        # Update buzzer state
-        if buzzer_state:
-            buzzer.on()
+    def toggle_stable_led(self, state):
+        if state:
+            self.stable_led.on()
         else:
-            buzzer.off()
+            self.stable_led.off()
 
-        logging.info(
-            f"Updated: Horse {actual_horse}, LED {led_color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
-    else:
-        logging.info("No horses with alerts")
-        display_number('-')
-        set_rgb_color(*colors["green"])
-        buzzer.off()
+    def update_actuators(self):
+        filtered_horses = [i for i, horse in enumerate(self.horses) if horse[0] not in ["green", "black"]]
+        if filtered_horses:
+            self.current_horse = max(filtered_horses, key=lambda i: self.horses[i][self.TIME])
+            color, buzzer_state, _ = self.horses[self.current_horse]
+            self.rgb_led.set_color(*COLORS.get(color, COLORS["black"]))
+            self.display.display(self.current_horse)
+            if buzzer_state:
+                self.buzzer.on()
+            else:
+                self.buzzer.off()
+            logging.info(f"Updated: Horse {self.current_horse}, LED {color}, Buzzer {'ON' if buzzer_state else 'OFF'}")
+        else:
+            self.display.display('-')
+            self.rgb_led.set_color(*COLORS["green"])
+            self.buzzer.off()
+            logging.info("No horses with alerts")
 
-    return actual_horse
+    def process_message(self, message):
+        try:
+            data = json.loads(message)
+            device_name = data.get("deviceName", "No device")
+            if device_name == "stable":
+                self.toggle_stable_led(data.get("ledStable", False))
+            elif "horse" in device_name:
+                horse_number = data.get("horse", -1)
+                if 0 <= horse_number < self.num_horses:
+                    self.horses[horse_number] = (data.get("led", "black"), data.get("buzzer", False), time())
+                    self.update_actuators()
+        except Exception as e:
+            logging.error(f"Error processing MQTT message: {e}")
 
-def process_message(message):
-    global current_horse
+    def handle_button_press(self):
+        start_time = time()
+        while self.button.is_pressed:
+            sleep(0.1)
+        press_duration = time() - start_time
+        if press_duration < 1:
+            self.horses[self.current_horse] = ("green", False, time())
+            self.update_actuators()
+        else:
+            alert_message = {"alert": True, "horse": self.current_horse}
+            client.publish(TOPIC_TO_PUBLISH, json.dumps(alert_message), qos=1)
+            logging.info(f"Message published: horse {self.current_horse}")
 
-    try:
-        data = json.loads(message)
 
-        device_name = data.get("deviceName", "No device")
+# MQTT Configuration
+BROKER = "srv-iot.diatel.upm.es"
+PORT = 8883
+TOPIC_TO_SUBSCRIBE = "v1/devices/me/attributes"
+TOPIC_TO_PUBLISH = "v1/devices/me/telemetry"
+ACCESS_TOKEN = "7jpi6hyp0jzolihttq45"
 
-        if device_name == "stable":
-            stable_state = data.get("ledStable", False)
-            toggle_stable_led(stable_state)
-            logging.info(f"stable_led: {stable_state}")
-        elif "horse" in device_name:
-            horse_number = data.get("horse", -1)
-            if horse_number < 0:
-                return
-
-            # Update buffer
-            horses_array[horse_number] = (data.get("led", "black"), data.get("buzzer", False), time())
-            current_horse = update_actuators()
-
-    except Exception as e:
-        logging.error(f"Error processing MQTT message: {e}")
-
-def handle_button_press():
-    global current_horse
-
-    start_time = time()
-    while button.is_pressed:
-        sleep(0.1)
-    press_duration = time() - start_time
-
-    if press_duration < 1:
-        # Reset to 0
-        logging.info(f"Button briefly pressed: Clearing alert for horse {current_horse}")
-        horses_array[current_horse] = ("green", False, time())
-        logging.info(f"Button briefly pressed: Clearing alert for horse {current_horse}, horse_array: {horses_array}")
-        current_horse = update_actuators()
-    else:
-        # Call the vet
-        alert_message = {"alert": True, "horse": current_horse}
-        client.publish(topic_to_publish, json.dumps(alert_message), qos=1)
-        logging.info(f"Message published: horse {current_horse}")
-
-# MQTT configuration
-broker = "srv-iot.diatel.upm.es"
-port = 8883
-topic_to_subscribe = "v1/devices/me/attributes"
-topic_to_publish = "v1/devices/me/telemetry"
-access_token = "7jpi6hyp0jzolihttq45"
-
+monitor = HealthMonitor()
 client = mqtt.Client()
-client.username_pw_set(access_token)
+client.username_pw_set(ACCESS_TOKEN)
 client.tls_set()
+
+
+COLORS = {"green": (0, 1, 0),
+          "red": (1, 0, 0),
+          "blue": (0, 0, 1),
+          "yellow": (1, 1, 0),
+          "black": (0, 0, 0),
+          "orange": (1, 0.5, 0),
+          "purple": (1, 0, 1)}
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
         logging.info("Successfully connected to MQTT broker.")
-        client.subscribe(topic_to_subscribe, qos=1)
+        client.subscribe(TOPIC_TO_SUBSCRIBE, qos=1)
     else:
         logging.error(f"Error connecting to broker, code: {rc}")
 
+
 def on_message(client, userdata, msg):
     logging.info(f"Message received: {msg.payload.decode()}")
-    process_message(msg.payload.decode())
+    monitor.process_message(msg.payload.decode())
+
 
 client.on_connect = on_connect
 client.on_message = on_message
 
 try:
-    logging.info(f"Connecting to MQTT broker {broker}:{port}...")
-    client.connect(broker, port, 60)
+    logging.info(f"Connecting to MQTT broker {BROKER}:{PORT}...")
+    client.connect(BROKER, PORT, 60)
     client.loop_start()
 except Exception as e:
     logging.error(f"Error connecting to MQTT broker: {e}")
 
+
 def main():
     logging.info("Monitoring system started.")
-    button.when_pressed = handle_button_press
+    monitor.button.when_pressed = monitor.handle_button_press
 
-    display_number('-')
-    set_rgb_color(*colors["black"])
-    buzzer.off()
+    monitor.display.display('-')
+    monitor.rgb_led.set_color(*COLORS["black"])
+    monitor.buzzer.off()
 
     try:
         while True:
@@ -209,13 +198,13 @@ def main():
         logging.warning("Program manually interrupted.")
     finally:
         logging.info("Shutting down system.")
-        for segment in segments.values():
-            segment.off()
-        buzzer.off()
-        set_rgb_color(*colors["black"])
+        monitor.display.off()
+        monitor.buzzer.off()
+        monitor.rgb_led.turn_off()
         client.loop_stop()
         client.disconnect()
         logging.info("MQTT client disconnected.")
+
 
 if __name__ == "__main__":
     main()
