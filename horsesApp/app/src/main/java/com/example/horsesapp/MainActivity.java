@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
         public String lastUpdated = "Not updated"; // Last update time
         public double x = DEFAULT_VAL_DOUBLE, y = DEFAULT_VAL_DOUBLE, z = DEFAULT_VAL_DOUBLE;
         public double latitude = DEFAULT_VAL_DOUBLE, longitude = DEFAULT_VAL_DOUBLE;
+        public String msg_metadata = "Not updated";
+        public String msg_dataprocessor = "No alerts";
     }
 
     private final String[] horses = {
@@ -191,9 +193,12 @@ public class MainActivity extends AppCompatActivity {
                             double z = jsonMessage.optDouble("z", DEFAULT_VAL_DOUBLE);
                             double latitude = jsonMessage.optDouble("lat", DEFAULT_VAL_DOUBLE);
                             double longitude = jsonMessage.optDouble("long", DEFAULT_VAL_DOUBLE);
+                            String msg_dataprocessor = jsonMessage.optString("alert_data_processor", "")  ;
 
                             // Get current time
                             String currentTime = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+                            String time_msg = new SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(new Date());
+
 
                             // Update data in the map
                             MainActivity.HorseData horseData = MainActivity.horseDataMap.getOrDefault(deviceName, new MainActivity.HorseData());
@@ -211,6 +216,10 @@ public class MainActivity extends AppCompatActivity {
                                 horseData.longitude = longitude;
                             }
                             horseData.lastUpdated = currentTime;
+                            if(msg_dataprocessor != "") {
+                                horseData.msg_dataprocessor = msg_dataprocessor;
+                                horseData.msg_metadata = time_msg;
+                            }
 
                             MainActivity.horseDataMap.put(deviceName, horseData);
 
@@ -226,6 +235,8 @@ public class MainActivity extends AppCompatActivity {
                             intent.putExtra("z", z);
                             intent.putExtra("lat", latitude);
                             intent.putExtra("long", longitude);
+                            intent.putExtra("msg_metadata", time_msg);
+                            intent.putExtra("msg_dataprocessor", msg_dataprocessor);
                             sendBroadcast(intent);
                         }
                     } catch (JSONException e) {
